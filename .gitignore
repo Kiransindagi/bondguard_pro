@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Frontend
+node_modules/
+dist/
+.vite/
+coverage/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Local AI coding tools
+.claude/
+
+# Generated repository inspection files
+final_tree.txt
+
+# Python packaging
+*.egg-info/
+build/
+
+# Temporary files
+*.tmp
+*.bak
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
