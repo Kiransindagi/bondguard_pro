@@ -7,7 +7,10 @@ from typing import Optional
 from app.db.database import get_db
 from app.db.models import YieldCurvePoint, MarketPrice, CreditSpread, MacroObservation, Instrument, DataIngestionRun
 
-router = APIRouter()
+from app.auth.dependencies import PermissionChecker
+from app.auth.permissions import PORTFOLIO_READ
+
+router = APIRouter(dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 
 @router.get("/yield-curve")
 def get_yield_curve(date: Optional[date] = None, db: Session = Depends(get_db)):

@@ -1,11 +1,8 @@
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
 from app.risk_engine.stress_testing.curve_shocks import interpolate_rate_shock
 from app.risk_engine.stress_testing.spread_shocks import resolve_spread_shock
 from app.db.models import Bond
 
-client = TestClient(app)
 
 def test_interpolate_rate_shock_boundaries():
     # 2Y bound
@@ -33,7 +30,7 @@ def test_resolve_spread_shock():
     tsy_bond = Bond(bond_type="Government", credit_rating="AAA")
     assert resolve_spread_shock(tsy_bond, 50, 100) == 0
 
-def test_predefined_scenario_update_protection(db_session):
+def test_predefined_scenario_update_protection(client):
     scenarios = client.get("/api/v1/stress-scenarios").json()
     predefined = next(s for s in scenarios if s["is_predefined"])
     
@@ -41,7 +38,7 @@ def test_predefined_scenario_update_protection(db_session):
     assert response.status_code == 400
     assert "Cannot modify predefined scenario" in response.text
 
-def test_missing_scenario_handling(db_session):
+def test_missing_scenario_handling(client):
     payload = {
         "scenario_id": 999999,
         "calculation_method": "FULL_REVALUATION"
@@ -50,7 +47,7 @@ def test_missing_scenario_handling(db_session):
     assert response.status_code == 404
     assert "Scenario not found" in response.text
 
-def test_approximation_vs_full_revaluation_diff(db_session):
+def test_approximation_vs_full_revaluation_diff(client):
     scenarios = client.get("/api/v1/stress-scenarios").json()
     scenario_id = next(s["id"] for s in scenarios if s["name"] == "RATE_UP_50BP")
     
@@ -71,7 +68,7 @@ def test_approximation_vs_full_revaluation_diff(db_session):
     # Check that they are slightly different (due to convexity)
     assert abs(res_full["total_pnl"] - res_approx["total_pnl"]) > 0
 
-def test_run_stress_test_zero_shock(db_session):
+def test_run_stress_test_zero_shock(client):
     # Create zero shock scenario
     payload = {
         "name": "ZERO_SHOCK",
@@ -87,7 +84,7 @@ def test_run_stress_test_zero_shock(db_session):
     # Should fail as 0 shocks are invalid by API definition
     assert create_res.status_code == 400
 
-def test_run_stress_test_extreme_shock_rejection(db_session):
+def test_run_stress_test_extreme_shock_rejection(client):
     payload = {
         "name": "EXTREME_SHOCK",
         "scenario_type": "CUSTOM",
@@ -101,7 +98,7 @@ def test_run_stress_test_extreme_shock_rejection(db_session):
     create_res = client.post("/api/v1/stress-scenarios", json=payload)
     assert create_res.status_code == 400
 
-def test_stress_test_persistence_accuracy(db_session):
+def test_stress_test_persistence_accuracy(client):
     scenarios = client.get("/api/v1/stress-scenarios").json()
     scenario_id = next(s["id"] for s in scenarios if s["name"] == "RATE_UP_25BP")
     
@@ -115,11 +112,11 @@ def test_stress_test_persistence_accuracy(db_session):
     assert len(hist_res["positions"]) == len(run_res["positions"])
     assert hist_res["positions"][0]["pnl"] == pytest.approx(run_res["positions"][0]["pnl"], abs=0.01)
 
-def test_get_invalid_run(db_session):
+def test_get_invalid_run(client):
     res = client.get("/api/v1/stress-tests/runs/999999")
     assert res.status_code == 404
 
-def test_compare_scenarios_ordering_accuracy(db_session):
+def test_compare_scenarios_ordering_accuracy(client):
     scenarios = client.get("/api/v1/stress-scenarios").json()
     s_ids = [s["id"] for s in scenarios if s["name"] in ["RATE_UP_100BP", "RATE_DOWN_100BP"]]
     
@@ -128,7 +125,7 @@ def test_compare_scenarios_ordering_accuracy(db_session):
     assert len(scens) == 2
     assert scens[0]["total_pnl"] <= scens[1]["total_pnl"] # Worst first
 
-def test_portfolio_not_found_handling(db_session):
+def test_portfolio_not_found_handling(client):
     scenarios = client.get("/api/v1/stress-scenarios").json()
     s_id = scenarios[0]["id"]
     

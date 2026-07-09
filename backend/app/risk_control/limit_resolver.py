@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from datetime import date
 from sqlalchemy import or_
 from app.db.models import RiskLimit
-from app.risk_control.enums import MetricType
 
 class LimitResolver:
     @staticmethod

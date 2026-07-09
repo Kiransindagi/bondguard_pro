@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
 from app.db.models import Breach, RiskLimit, RiskEvaluationRun
 from app.risk_control.enums import BreachStatus
 from app.risk_control.audit_service import AuditService
@@ -43,6 +42,17 @@ class BreachManager:
                 db, "BREACH_UPDATED", "BREACH", existing.id, "UPDATE",
                 previous_state=prev_state, new_state=new_state
             )
+
+            from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+            notif_sev = NotificationSeverity.SEVERE if existing.severity == "HARD_LIMIT" else NotificationSeverity.WARNING
+            NotificationDispatcher.dispatch_breach_event(
+                db=db,
+                breach=existing,
+                event_type=NotificationEventType.SEVERE_BREACH if notif_sev == NotificationSeverity.SEVERE else NotificationEventType.LIMIT_BREACH,
+                severity=notif_sev,
+                title=f"Risk Limit Breach Updated: {limit.code}",
+                message=f"Breach {limit.code} on Portfolio {portfolio_id} updated. Observed: {observed_value} vs limit {threshold}."
+            )
         else:
             # Create new open breach
             new_breach = Breach(
@@ -69,6 +79,17 @@ class BreachManager:
                 }
             )
 
+            from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+            notif_sev = NotificationSeverity.SEVERE if limit.severity == "HARD_LIMIT" else NotificationSeverity.WARNING
+            NotificationDispatcher.dispatch_breach_event(
+                db=db,
+                breach=new_breach,
+                event_type=NotificationEventType.SEVERE_BREACH if notif_sev == NotificationSeverity.SEVERE else NotificationEventType.LIMIT_BREACH,
+                severity=notif_sev,
+                title=f"New Risk Limit Breach: {limit.code}",
+                message=f"Risk limit {limit.code} breached on Portfolio {portfolio_id}. Observed: {observed_value} vs limit {threshold}."
+            )
+
     @staticmethod
     def resolve_breach_if_any(
         db: Session, 
@@ -92,4 +113,15 @@ class BreachManager:
             AuditService.append_event(
                 db, "BREACH_RESOLVED", "BREACH", existing.id, "UPDATE",
                 previous_state=prev_state, new_state=new_state
+            )
+
+            from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+            NotificationDispatcher.dispatch_event(
+                db=db,
+                event_type=NotificationEventType.BREACH_RESOLVED,
+                severity=NotificationSeverity.INFO,
+                title=f"Risk Limit Breach Resolved: {limit.code}",
+                message=f"Breach for limit {limit.code} on Portfolio {portfolio_id} resolved.",
+                entity_type="BREACH",
+                entity_id=existing.id
             )

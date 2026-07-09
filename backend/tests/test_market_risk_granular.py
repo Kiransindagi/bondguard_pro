@@ -1,16 +1,12 @@
 import numpy as np
 import pandas as pd
 from datetime import date
-from fastapi.testclient import TestClient
-from app.main import app
 
-client = TestClient(app)
-
-def test_availability_missing_portfolio(db_session):
+def test_availability_missing_portfolio(client):
     response = client.get("/api/v1/market-risk/portfolios/999999/availability")
     assert response.status_code == 404
 
-def test_historical_var_invalid_confidence():
+def test_historical_var_invalid_confidence(client):
     # pydantic/fastapi might not validate confidence < 0 or > 1 unless specified, but we check endpoint behavior
     response = client.get("/api/v1/market-risk/portfolios/1/historical-var?confidence_level=-1")
     # If not handled, it might return 200 or 500, but if it's returning 200 let's check it doesn't crash
@@ -18,7 +14,7 @@ def test_historical_var_invalid_confidence():
     # But wait, we want to test endpoints. Let's just ensure it doesn't 500.
     assert response.status_code in [200, 400, 404, 422]
 
-def test_backtest_insufficient_history(db_session):
+def test_backtest_insufficient_history(client):
     response = client.get("/api/v1/market-risk/portfolios/1/backtest")
     # Our DB might only have a few days or it might have many. 
     # Let's just verify it returns a valid response
@@ -27,36 +23,37 @@ def test_backtest_insufficient_history(db_session):
         assert "status" in data
         assert "exceptions" in data
 
-def test_factor_volatility_endpoint(db_session):
+def test_factor_volatility_endpoint(client):
     response = client.get("/api/v1/market-risk/factors/volatility?window=10")
     if response.status_code == 200:
         assert "data" in response.json()
     else:
         assert response.status_code == 400
 
-def test_factor_correlation_etf(db_session):
+def test_factor_correlation_etf(client):
     response = client.get("/api/v1/market-risk/factors/correlation?matrix_type=etf_context")
     if response.status_code == 200:
         data = response.json()
         assert "matrix" in data
         
-def test_factor_covariance_production(db_session):
+def test_factor_covariance_production(client):
     response = client.get("/api/v1/market-risk/factors/covariance?matrix_type=production_factors")
     if response.status_code == 200:
         data = response.json()
         assert "matrix" in data
 
-def test_expected_shortfall_endpoint(db_session):
+def test_expected_shortfall_endpoint(client):
     response = client.get("/api/v1/market-risk/portfolios/1/expected-shortfall")
     if response.status_code == 200:
         data = response.json()
         assert "expected_shortfall_currency" in data
 
-def test_contributions_endpoint(db_session):
+def test_contributions_endpoint(client):
     response = client.get("/api/v1/market-risk/portfolios/1/contributions")
     if response.status_code == 200:
         data = response.json()
         assert "contributions" in data
+
 
 def test_historical_var_insufficient_sample():
     from app.risk_engine.market_risk import calculate_historical_var

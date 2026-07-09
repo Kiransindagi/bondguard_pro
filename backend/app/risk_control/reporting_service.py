@@ -1,9 +1,11 @@
+import logging
 from sqlalchemy.orm import Session
 from datetime import datetime
 from decimal import Decimal
 
+logger = logging.getLogger(__name__)
+
 from app.db.models import Portfolio, RiskEvaluationRun, RiskLimitResult, Breach, RiskLimit
-from app.risk_control.enums import BreachStatus
 from app.schemas.risk_control import (
     RiskReportResponse, ReportMetadata, PortfolioRiskSection, MarketRiskSection,
     StressRiskSection, LiquidityRiskSection, ConcentrationSection, LimitSummary,
@@ -62,20 +64,27 @@ class ReportingService:
         mr_model_status = "AVAILABLE"
         mr_limitations = None
         try:
-            h_res = get_historical_var(portfolio_id, db=db)
-            hist_var = Decimal(h_res.get("var_value", 0))
-            mr_model_status = h_res.get("model_status", "AVAILABLE")
+            h_res = get_historical_var(portfolio_id, confidence_level=0.95, horizon_days=1, db=db)
+            hist_var = Decimal(h_res.get("var_currency", 0))
+            mr_model_status = h_res.get("model_type", "AVAILABLE")
             if mr_model_status != "FULL_FACTOR_MODEL":
                 mr_limitations = "Missing credit spread risk"
                 
-            p_res = get_parametric_var(portfolio_id, db=db)
-            param_var = Decimal(p_res.get("var_value", 0))
+            p_res = get_parametric_var(portfolio_id, confidence_level=0.95, horizon_days=1, db=db)
+            param_var = Decimal(p_res.get("var_currency", 0))
             
-            es_res = get_expected_shortfall(portfolio_id, db=db)
-            es = Decimal(es_res.get("es_value", 0))
+            es_res = get_expected_shortfall(portfolio_id, confidence_level=0.95, db=db)
+            es = Decimal(es_res.get("expected_shortfall_currency", 0))
         except Exception as e:
-            mr_model_status = "ERROR"
-            mr_limitations = str(e)
+            logger.error(f"Failed to generate market risk section: {e}", exc_info=True)
+            try:
+                from app.risk_engine.market_risk.availability import check_model_availability
+                avail = check_model_availability(db)
+                mr_model_status = avail.model_status.value
+                mr_limitations = avail.limitations
+            except Exception:
+                mr_model_status = "ERROR"
+                mr_limitations = str(e)
             
         market_risk = MarketRiskSection(
             historical_var=hist_var,

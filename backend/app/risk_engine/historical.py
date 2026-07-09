@@ -83,6 +83,25 @@ class FactorAlignmentService:
         Builds a time-aligned DataFrame of daily factor shocks (basis point changes for rates/spreads, log returns for prices).
         No forward filling. Drops rows with missing data to ensure aligned shocks.
         """
+        # Quality Gate Checks
+        from app.data_quality.engine import DataQualityEngine
+        from app.risk_engine.exceptions import RiskEngineError
+
+        # 1. Gating Treasury rates
+        for rate_key in ["DGS2", "DGS5", "DGS10", "DGS30"]:
+            if DataQualityEngine.check_dataset_gating(self.db, rate_key) == "FAIL":
+                raise RiskEngineError("Model is UNAVAILABLE: Required Treasury rate factors failed quality checks.")
+
+        # 2. Gating credit spreads
+        spread_failed = False
+        for spread_key in ["BAMLC0A0CM", "BAMLH0A0HYM2"]:
+            if DataQualityEngine.check_dataset_gating(self.db, spread_key) == "FAIL":
+                spread_failed = True
+                break
+
+        if spread_failed and model_status == "FULL_FACTOR_MODEL":
+            model_status = "RATE_ONLY_MODEL"
+
         # Fetch Data
         etfs = pd.read_sql(self.db.query(MarketPrice.observation_date, Instrument.symbol, MarketPrice.close).join(Instrument).statement, self.db.connection())
         curves = pd.read_sql(self.db.query(YieldCurvePoint.observation_date, YieldCurvePoint.tenor_years, YieldCurvePoint.yield_percent).statement, self.db.connection())

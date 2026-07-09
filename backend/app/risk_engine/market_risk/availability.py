@@ -26,15 +26,37 @@ class ModelAvailabilityResult(BaseModel):
 from app.risk_engine.historical import FactorAlignmentService
 
 def check_model_availability(db: Session, min_required: int = 252) -> ModelAvailabilityResult:
+    from app.data_quality.engine import DataQualityEngine
+
+    # Check quality gate for Treasury rates
+    rates_failed = False
+    for rate_key in ["DGS2", "DGS5", "DGS10", "DGS30"]:
+        if DataQualityEngine.check_dataset_gating(db, rate_key) == "FAIL":
+            rates_failed = True
+            break
+
+    # Check quality gate for credit spreads
+    spreads_failed = False
+    for spread_key in ["BAMLC0A0CM", "BAMLH0A0HYM2"]:
+        if DataQualityEngine.check_dataset_gating(db, spread_key) == "FAIL":
+            spreads_failed = True
+            break
+
     service = FactorAlignmentService(db)
     
     try:
-        rate_shocks = service.get_aligned_factor_returns(required_obs=1, model_status="RATE_ONLY_MODEL", include_etfs=False)
+        if rates_failed:
+            rate_shocks = pd.DataFrame()
+        else:
+            rate_shocks = service.get_aligned_factor_returns(required_obs=1, model_status="RATE_ONLY_MODEL", include_etfs=False)
     except Exception:
         rate_shocks = pd.DataFrame()
         
     try:
-        full_shocks = service.get_aligned_factor_returns(required_obs=1, model_status="FULL_FACTOR_MODEL", include_etfs=False)
+        if rates_failed or spreads_failed:
+            full_shocks = pd.DataFrame()
+        else:
+            full_shocks = service.get_aligned_factor_returns(required_obs=1, model_status="FULL_FACTOR_MODEL", include_etfs=False)
     except Exception:
         full_shocks = pd.DataFrame()
         

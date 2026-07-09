@@ -21,10 +21,28 @@ class AuditService:
         entity_id: int, 
         action: str, 
         actor: str = "SYSTEM",
+        actor_user_id: int = None,
+        request_id: str = None,
         previous_state: dict = None,
         new_state: dict = None,
         metadata: dict = None
     ):
+        from app.core.observability import user_context_var, request_id_var
+        
+        # Auto-extract request ID if not provided
+        final_request_id = request_id or request_id_var.get()
+        
+        # Auto-extract actor from context var if actor is default "SYSTEM"
+        final_actor = actor
+        final_actor_user_id = actor_user_id
+        
+        u_ctx = user_context_var.get()
+        if u_ctx:
+            if final_actor == "SYSTEM":
+                final_actor = u_ctx.get("username", "SYSTEM")
+            if final_actor_user_id is None:
+                final_actor_user_id = u_ctx.get("id")
+
         # Serialize to ensure proper type conversion for JSON column
         prev_json = json.loads(json.dumps(previous_state, cls=AuditJSONEncoder)) if previous_state else None
         new_json = json.loads(json.dumps(new_state, cls=AuditJSONEncoder)) if new_state else None
@@ -35,7 +53,9 @@ class AuditService:
             entity_type=entity_type,
             entity_id=entity_id,
             action=action,
-            actor=actor,
+            actor=final_actor,
+            actor_user_id=final_actor_user_id,
+            request_id=final_request_id,
             previous_state=prev_json,
             new_state=new_json,
             metadata_json=meta_json

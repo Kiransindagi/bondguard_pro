@@ -1,5 +1,4 @@
 import math
-from decimal import Decimal
 from .types import LiquidityAssumptionConfig, HorizonBucket
 
 def estimate_daily_capacity(bond_type: str, rating: str, config: LiquidityAssumptionConfig) -> float:

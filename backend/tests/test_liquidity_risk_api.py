@@ -1,22 +1,9 @@
-import pytest
-from fastapi.testclient import TestClient
-from app.main import app
-from datetime import date
-
-client = TestClient(app)
-
-def test_get_portfolio_liquidity_no_snapshot(db_session):
+def test_get_portfolio_liquidity_no_snapshot(client):
     response = client.get("/api/v1/liquidity-risk/portfolios/999/summary")
     assert response.status_code == 404
 
-def test_create_and_get_snapshot(db_session):
+def test_create_and_get_snapshot(client):
     # This requires an existing portfolio (id=1 typically exists from seed)
-    # Ensure assumption is seeded first.
-    import seed_liquidity_assumptions
-    import seed_concentration_limits
-    seed_liquidity_assumptions.seed_assumptions()
-    seed_concentration_limits.seed_limits()
-    
     response = client.post("/api/v1/liquidity-risk/portfolios/1/snapshot")
     assert response.status_code in [200, 400]
     

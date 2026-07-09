@@ -359,12 +359,19 @@ class Breach(Base):
     breach_amount = Column(Numeric(18, 6), nullable=False)
     opened_at = Column(DateTime(timezone=True), nullable=False)
     acknowledged_at = Column(DateTime(timezone=True), nullable=True)
+    under_review_at = Column(DateTime(timezone=True), nullable=True)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
     assigned_to = Column(String, nullable=True)
+    assigned_user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     acknowledgement_note = Column(String, nullable=True)
+    review_notes = Column(String, nullable=True)
     resolution_note = Column(String, nullable=True)
+    escalation_level = Column(Integer, default=0, nullable=False)
+    sla_deadline = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    assigned_user = relationship("User", foreign_keys=[assigned_user_id])
 
 class AuditEvent(Base):
     __tablename__ = 'audit_events'
@@ -374,11 +381,14 @@ class AuditEvent(Base):
     entity_id = Column(Integer, nullable=False)
     action = Column(String, nullable=False)
     actor = Column(String, nullable=False)
+    actor_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    request_id = Column(String, nullable=True)
     previous_state = Column(JSON, nullable=True)
     new_state = Column(JSON, nullable=True)
     metadata_json = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    actor_user = relationship("User")
 
 class PortfolioRiskSnapshot(Base):
     __tablename__ = 'portfolio_risk_snapshots'
@@ -426,3 +436,196 @@ class PortfolioRiskSnapshot(Base):
     __table_args__ = (
         UniqueConstraint('portfolio_id', 'snapshot_date', name='uq_portfolio_snapshot_date'),
     )
+
+class PipelineRun(Base):
+    __tablename__ = 'pipeline_runs'
+
+    id = Column(Integer, primary_key=True, index=True)
+    run_type = Column(String, nullable=False) # ALL, CATEGORY, DATASET, INCREMENTAL, BACKFILL
+    status = Column(String, nullable=False) # PENDING, RUNNING, SUCCESS, PARTIAL_SUCCESS, FAILED
+    requested_start_date = Column(Date, nullable=True)
+    requested_end_date = Column(Date, nullable=True)
+    started_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    triggered_by = Column(String, nullable=False, default="SYSTEM")
+    total_jobs = Column(Integer, nullable=False, default=0)
+    successful_jobs = Column(Integer, nullable=False, default=0)
+    failed_jobs = Column(Integer, nullable=False, default=0)
+    metadata_json = Column(JSON, nullable=True)
+    error_summary = Column(String, nullable=True)
+
+    job_runs = relationship("PipelineJobRun", back_populates="pipeline_run", cascade="all, delete-orphan")
+
+class PipelineJobRun(Base):
+    __tablename__ = 'pipeline_job_runs'
+
+    id = Column(Integer, primary_key=True, index=True)
+    pipeline_run_id = Column(Integer, ForeignKey('pipeline_runs.id', ondelete='CASCADE'), nullable=False)
+    dataset_key = Column(String, nullable=False)
+    status = Column(String, nullable=False) # PENDING, RUNNING, SUCCESS, FAILED
+    started_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    rows_fetched = Column(Integer, nullable=False, default=0)
+    rows_inserted = Column(Integer, nullable=False, default=0)
+    rows_updated = Column(Integer, nullable=False, default=0)
+    rows_rejected = Column(Integer, nullable=False, default=0)
+    retry_count = Column(Integer, nullable=False, default=0)
+    error_message = Column(String, nullable=True)
+    metadata_json = Column(JSON, nullable=True)
+
+    pipeline_run = relationship("PipelineRun", back_populates="job_runs")
+
+class DataQualityRun(Base):
+    __tablename__ = 'data_quality_runs'
+
+    id = Column(Integer, primary_key=True, index=True)
+    pipeline_run_id = Column(Integer, ForeignKey('pipeline_runs.id', ondelete='SET NULL'), nullable=True)
+    status = Column(String, nullable=False) # PASS, WARNING, FAIL
+    started_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    datasets_checked = Column(Integer, nullable=False, default=0)
+    checks_passed = Column(Integer, nullable=False, default=0)
+    checks_warned = Column(Integer, nullable=False, default=0)
+    checks_failed = Column(Integer, nullable=False, default=0)
+
+    results = relationship("DataQualityResult", back_populates="data_quality_run", cascade="all, delete-orphan")
+
+class DataQualityResult(Base):
+    __tablename__ = 'data_quality_results'
+
+    id = Column(Integer, primary_key=True, index=True)
+    data_quality_run_id = Column(Integer, ForeignKey('data_quality_runs.id', ondelete='CASCADE'), nullable=False)
+    dataset_key = Column(String, nullable=False)
+    check_name = Column(String, nullable=False) # freshness, duplicates, nulls, continuity, min_history
+    status = Column(String, nullable=False) # PASS, WARNING, FAIL
+    observed_value = Column(Float, nullable=True)
+    expected_value = Column(Float, nullable=True)
+    message = Column(String, nullable=True)
+    metadata_json = Column(JSON, nullable=True)
+
+    data_quality_run = relationship("DataQualityRun", back_populates="results")
+
+class AnalyticsRun(Base):
+    __tablename__ = 'analytics_runs'
+
+    id = Column(Integer, primary_key=True, index=True)
+    portfolio_id = Column(Integer, ForeignKey('portfolios.id', ondelete='CASCADE'), nullable=False)
+    valuation_date = Column(Date, nullable=False)
+    status = Column(String, nullable=False) # SUCCESS, PARTIAL_SUCCESS, FAILED
+    started_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    calculation_version = Column(String, nullable=True)
+    model_status = Column(String, nullable=True) # AVAILABLE, DEGRADED, NO_DATA
+    data_quality_status = Column(String, nullable=True) # PASS, WARNING, FAIL
+    error_summary = Column(String, nullable=True)
+    metadata_json = Column(JSON, nullable=True)
+
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    roles = relationship("Role", secondary="user_roles", back_populates="users")
+    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+
+
+class Role(Base):
+    __tablename__ = "roles"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
+    description = Column(String, nullable=True)
+
+    users = relationship("User", secondary="user_roles", back_populates="roles")
+    permissions = relationship("Permission", secondary="role_permissions", back_populates="roles")
+
+
+class Permission(Base):
+    __tablename__ = "permissions"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
+    description = Column(String, nullable=True)
+
+    roles = relationship("Role", secondary="role_permissions", back_populates="permissions")
+
+
+class UserRole(Base):
+    __tablename__ = "user_roles"
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True)
+
+
+class RolePermission(Base):
+    __tablename__ = "role_permissions"
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True)
+    permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True)
+
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    token = Column(String, unique=True, index=True, nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    is_revoked = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="refresh_tokens")
+
+
+class InAppNotification(Base):
+    __tablename__ = 'in_app_notifications'
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    event_type = Column(String, nullable=False) # e.g. breach, pipeline, data-quality
+    severity = Column(String, nullable=False) # e.g. INFO, WARNING, SEVERE
+    title = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    is_read = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    entity_type = Column(String, nullable=True) # e.g. BREACH, PIPELINE_RUN
+    entity_id = Column(Integer, nullable=True)
+
+    user = relationship("User")
+
+
+class SavedScenario(Base):
+    __tablename__ = 'saved_scenarios'
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    creator_user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    rate_2y_shock_bps = Column(Integer, default=0, nullable=False)
+    rate_5y_shock_bps = Column(Integer, default=0, nullable=False)
+    rate_10y_shock_bps = Column(Integer, default=0, nullable=False)
+    rate_30y_shock_bps = Column(Integer, default=0, nullable=False)
+    ig_spread_shock_bps = Column(Integer, default=0, nullable=False)
+    hy_spread_shock_bps = Column(Integer, default=0, nullable=False)
+    version = Column(Integer, default=1, nullable=False)
+    is_public = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    creator = relationship("User")
+
+
+class SavedScenarioRun(Base):
+    __tablename__ = 'saved_scenario_runs'
+    id = Column(Integer, primary_key=True, index=True)
+    scenario_id = Column(Integer, ForeignKey('saved_scenarios.id', ondelete='CASCADE'), nullable=False)
+    portfolio_id = Column(Integer, ForeignKey('portfolios.id', ondelete='CASCADE'), nullable=False)
+    valuation_date = Column(Date, nullable=False)
+    executed_by_user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    executed_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    base_market_value = Column(Numeric(18, 6), nullable=False)
+    stressed_market_value = Column(Numeric(18, 6), nullable=False)
+    pnl_impact = Column(Numeric(18, 6), nullable=False)
+
+    scenario = relationship("SavedScenario")
+    portfolio = relationship("Portfolio")
+    executor = relationship("User")
+

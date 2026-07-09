@@ -1,38 +1,14 @@
 import pytest
-from decimal import Decimal
 from datetime import date
-from fastapi.testclient import TestClient
 
-from app.main import app
-from app.db.database import get_db
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from app.db.models import Base, RiskLimit, RiskEvaluationRun, Breach, AuditEvent, Portfolio, Bond, Position
+from app.db.models import RiskLimit, Portfolio
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test_risk_control.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
-
-client = TestClient(app)
-
-@pytest.fixture(scope="module")
-def setup_db():
-    Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    
+@pytest.fixture(scope="function")
+def setup_db(db_session):
     # create portfolio
     p = Portfolio(name="Risk Test Portfolio", description="Test", created_at=date(2023, 1, 1))
-    db.add(p)
-    db.commit()
+    db_session.add(p)
+    db_session.commit()
     
     # create limit
     limit = RiskLimit(
@@ -47,58 +23,58 @@ def setup_db():
         effective_from=date(2020, 1, 1),
         is_active=True
     )
-    db.add(limit)
-    db.commit()
+    db_session.add(limit)
+    db_session.commit()
     
-    yield db
-    Base.metadata.drop_all(bind=engine)
+    yield db_session
 
-def test_evaluate_portfolio(setup_db):
-    response = client.post("/api/v1/risk-control/portfolios/1/evaluate")
+def test_evaluate_portfolio(clean_client, setup_db):
+    response = clean_client.post("/api/v1/risk-control/portfolios/1/evaluate")
     assert response.status_code == 200
     data = response.json()
     assert "id" in data
     assert data["evaluated_limit_count"] >= 0
 
-def test_get_latest_evaluation(setup_db):
-    response = client.get("/api/v1/risk-control/portfolios/1/latest")
+def test_get_latest_evaluation(clean_client, setup_db):
+    clean_client.post("/api/v1/risk-control/portfolios/1/evaluate")
+    response = clean_client.get("/api/v1/risk-control/portfolios/1/latest")
     assert response.status_code == 200
     data = response.json()
     assert "run" in data
     assert "results" in data
 
-def test_get_history(setup_db):
-    response = client.get("/api/v1/risk-control/portfolios/1/history")
+def test_get_history(clean_client, setup_db):
+    clean_client.post("/api/v1/risk-control/portfolios/1/evaluate")
+    response = clean_client.get("/api/v1/risk-control/portfolios/1/history")
     assert response.status_code == 200
     assert len(response.json()) >= 1
 
-def test_get_breaches(setup_db):
-    response = client.get("/api/v1/risk-control/portfolios/1/breaches")
+def test_get_breaches(clean_client, setup_db):
+    response = clean_client.get("/api/v1/risk-control/portfolios/1/breaches")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-def test_get_audit_events(setup_db):
-    response = client.get("/api/v1/risk-control/audit-events")
+def test_get_audit_events(clean_client, setup_db):
+    response = clean_client.get("/api/v1/risk-control/audit-events")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-
-def test_deactivate_limit(setup_db):
+def test_deactivate_limit(clean_client, setup_db):
     # limit 1 was created in setup
-    response = client.delete("/api/v1/risk-control/limits/1")
+    response = clean_client.delete("/api/v1/risk-control/limits/1")
     assert response.status_code == 200
     
     # verify it is deactivated
-    r2 = client.get("/api/v1/risk-control/limits/1")
+    r2 = clean_client.get("/api/v1/risk-control/limits/1")
     assert r2.status_code == 200
-    assert r2.json()["is_active"] == False
+    assert r2.json()["is_active"] is False
 
-def test_report_endpoint(setup_db):
+def test_report_endpoint(clean_client, setup_db):
     # ensure an evaluation exists
-    client.post("/api/v1/risk-control/portfolios/1/evaluate")
+    clean_client.post("/api/v1/risk-control/portfolios/1/evaluate")
     
     # request report
-    response = client.get("/api/v1/risk-control/portfolios/1/report")
+    response = clean_client.get("/api/v1/risk-control/portfolios/1/report")
     assert response.status_code == 200
     
     data = response.json()
@@ -116,4 +92,6 @@ def test_report_endpoint(setup_db):
     assert "model_governance" in data
     
     # check specific degraded markers
-    assert data["market_risk"]["model_status"] in ["RATE_ONLY_MODEL", "AVAILABLE", "ERROR"]
+    assert data["market_risk"]["model_status"] in ["RATE_ONLY_MODEL", "AVAILABLE", "ERROR", "UNAVAILABLE"]
+
+

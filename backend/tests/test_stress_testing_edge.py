@@ -1,10 +1,6 @@
-from fastapi.testclient import TestClient
-from app.main import app
 from app.risk_engine.stress_testing.curve_shocks import interpolate_rate_shock
 from app.risk_engine.stress_testing.spread_shocks import resolve_spread_shock
 from app.db.models import Bond
-
-client = TestClient(app)
 
 def test_interpolate_rate_shock_exact_points():
     assert interpolate_rate_shock(2.0, 10, 20, 30, 40) == 10.0
@@ -26,7 +22,7 @@ def test_resolve_spread_shock_petrobras_special():
     bond = Bond(bond_type="Corporate", bond_name="Petrobras Global Finance", credit_rating="BBB")
     assert resolve_spread_shock(bond, 15, 80) == 80
 
-def test_compare_scenarios_empty_list(db_session):
+def test_compare_scenarios_empty_list(client):
     res = client.post("/api/v1/stress-tests/portfolios/1/compare", json={"scenario_ids": []})
     # Should probably just return empty list or fail gracefully depending on implementation
     assert res.status_code == 200

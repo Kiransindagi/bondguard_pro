@@ -2,52 +2,197 @@
 
 Institutional fixed-income portfolio risk analytics platform.
 
-## Architecture
+---
 
-BondGuard Pro uses a FastAPI backend and a React (TypeScript, Vite) frontend.
+## Product Purpose
 
-## Quickstart
+BondGuard Pro provides real-time and historical risk analytics for fixed-income portfolios, including:
+- Deterministic bond pricing (clean price, dirty price, accrued interest, DV01, convexity)
+- Historical VaR, Parametric VaR, and Expected Shortfall
+- Liquidity risk scoring and HHI concentration analysis
+- Stress testing via full revaluation and duration/convexity approximation
+- Scenario Lab for user-defined parallel rate and spread shocks
+- Advanced analytics: Key Rate Duration (KRD), bucketed DV01, CS01, carry/roll-down, P&L explain
+- Risk limit evaluation with breach lifecycle management
+- Production data pipeline (FRED API + Yahoo Finance) with data quality gating
+- Notification and breach escalation workflows
 
-### Prerequisites
-- Python 3.12
-- Node.js
-- PostgreSQL
+---
 
-### Database setup
-Create a local database named `bondguard_db`.
-Copy `.env.example` to `.env` in the root folder, and also into `backend/.env`. Fill in `FRED_API_KEY` and the correct `DATABASE_URL`.
+## Architecture Summary
 
-### Backend
-1. `cd backend`
-2. `pip install -r requirements.txt`
-3. Run migrations: `alembic upgrade head`
-4. Seed Sprint 2 Portfolio Data: `python seed_portfolio.py`
-5. Start the API: `python -m uvicorn app.main:app --reload`
-6. Run tests: `python -m pytest -v`
+```
+BondGuard Pro
+├── backend/               FastAPI (Python 3.10+)
+│   ├── app/
+│   │   ├── api/v1/        REST API endpoints
+│   │   ├── auth/          JWT authentication, RBAC, refresh token lifecycle
+│   │   ├── data_pipeline/ FRED + yfinance ingestion orchestration
+│   │   ├── data_quality/  Dataset freshness and outlier gating
+│   │   ├── db/            SQLAlchemy models, Alembic migrations
+│   │   ├── notifications/ In-app notification dispatch and deduplication
+│   │   ├── reporting/     PDF/CSV executive report generation
+│   │   ├── risk_control/  Limit evaluation, breach lifecycle, audit
+│   │   ├── risk_engine/   Deterministic pricing, VaR, liquidity, stress
+│   │   └── scenario_lab/  User-defined scenario execution and attribution
+│   ├── alembic/           Database migration history
+│   ├── scripts/           Seed, ingestion, and maintenance scripts
+│   └── tests/             Pytest integration and unit tests
+└── frontend/              React + TypeScript + Vite
+    ├── src/
+    │   ├── api/           Typed API client functions
+    │   ├── auth/          Auth provider, protected routes, permissions
+    │   ├── components/    Shared layout and UI components
+    │   └── pages/         One page per domain module
+    └── src/test/          Vitest component tests
+```
 
-### Frontend
-1. `cd frontend`
-2. `npm install`
-3. Start the dev server: `npm run dev`
-4. Run tests: `npm run test`
-5. Run production build: `npm run build`
+---
 
-## Features
-- **Sprint 1**: Market data ingestion pipeline (FRED, yfinance).
-- **Sprint 2**: Institutional Portfolio and Position management, accounting rules, and WAC tracking. Includes a React dashboard.
-- **Sprint 3 (Risk Engine)**: 
-  - Pure numerical fixed-income valuation from discounted cash flows.
-  - Custom Yield-to-Maturity (YTM) bisection solver.
-  - Duration (Macaulay/Modified) and Convexity calculations.
-  - DV01 via finite difference and quantity scaling.
-  - Yield Curve Interpolation (Linear interpolation with flat extrapolation).
-  - Risk API endpoints mapping portfolio risks securely.
+## Technology Stack
 
-*Note: Historical VaR, Parametric VaR, Stress Testing, and Machine Learning algorithms are NOT yet implemented.*
+| Layer        | Technology                                |
+|-------------|-------------------------------------------|
+| Backend API  | FastAPI, SQLAlchemy, Pydantic v2, Alembic |
+| Database     | PostgreSQL (production), SQLite (tests)   |
+| Auth         | JWT (access + refresh tokens), bcrypt     |
+| Risk Engine  | NumPy, pandas, scipy                      |
+| Data Sources | FRED API, Yahoo Finance (yfinance)        |
+| Frontend     | React 18, TypeScript, Vite, TanStack Query|
+| Charts       | Plotly.js (react-plotly.js)               |
+| Testing      | Pytest (backend), Vitest (frontend)       |
+| Linting      | Ruff (backend), oxlint (frontend)         |
+| Containers   | Docker Compose                            |
 
-## Risk API Endpoints Example
+---
 
-*   `GET /api/v1/risk/bonds/{bond_id}?clean_price=99.5`
-*   `GET /api/v1/risk/portfolios/{portfolio_id}/summary`
-*   `GET /api/v1/risk/portfolios/{portfolio_id}/positions`
-*   `GET /api/v1/risk/curve`
+## Prerequisites
+
+- Python 3.10+
+- Node.js 18+
+- PostgreSQL 14+ (production) or SQLite (tests only)
+
+---
+
+## Environment Setup
+
+```bash
+cp .env.example .env        # Edit DATABASE_URL and FRED_API_KEY
+cp .env.example backend/.env
+```
+
+Required `.env` variables:
+```
+DATABASE_URL=postgresql://user:password@localhost:5432/bondguard_db
+FRED_API_KEY=your_key_here
+JWT_SECRET_KEY=your_secret_key_here
+ENVIRONMENT=development
+```
+
+---
+
+## Migrations
+
+```bash
+cd backend
+python -m alembic upgrade head    # Apply all migrations
+python -m alembic current          # Verify current migration head
+python -m alembic history          # View full migration chain
+```
+
+---
+
+## Seed Commands
+
+Run from `backend/`:
+```bash
+python -m scripts.seed.seed_roles_permissions
+python -m scripts.seed.seed_portfolio
+python -m scripts.seed.seed_stress_scenarios
+python -m scripts.seed.seed_liquidity_assumptions
+python -m scripts.seed.seed_concentration_limits
+python -m scripts.seed.seed_risk_limits
+```
+
+---
+
+## Backend Startup
+
+```bash
+cd backend
+python -m venv venv
+.\venv\Scripts\activate         # Windows
+# source venv/bin/activate      # Linux/macOS
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+API docs available at: `http://localhost:8000/api/v1/openapi.json`
+
+---
+
+## Frontend Startup
+
+```bash
+cd frontend
+npm install
+npm run dev           # Dev server on http://localhost:5173
+```
+
+---
+
+## Tests
+
+**Backend:**
+```bash
+cd backend
+$env:PYTHONPATH="."             # Windows PowerShell
+python -m pytest -v
+python -m ruff check .
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run test -- --run
+npm run build
+```
+
+---
+
+## Docker Startup
+
+```bash
+docker compose up --build
+```
+
+Services: `api` (port 8000), `frontend` (port 5173), `db` (PostgreSQL port 5432).
+
+---
+
+## Known Model Limitations
+
+- **Rate-Only Model Degradation (`RATE_ONLY_MODEL`)**: When credit spread history fails data quality gates or the FRED API is unavailable, the VaR engine degrades gracefully to rate factors only. The API response includes `model_status: RATE_ONLY_MODEL`. This is by design and is clearly flagged in the frontend.
+- **Minimum Observations**: Production VaR requires a minimum of 252 trading days of factor history. Risk runs below this threshold are blocked at the data quality gate.
+- **Spread Duration (CS01)**: Treasuries have zero spread sensitivity by construction. CS01 is only non-zero for `bond_type == "Corporate"`.
+- **P&L Explain**: The `residual` component captures pricing model differences and is expected to be non-zero. It is not an error condition.
+- **Carry and Roll-Down**: Based on deterministic yield curve interpolation at shifted maturities. Does not account for stochastic rate dynamics.
+
+---
+
+## Documentation Index
+
+| Topic | Location |
+|-------|----------|
+| System Architecture | `docs/architecture/system_architecture.md` |
+| Data Sources | `docs/architecture/data_sources.md` |
+| Reporting Architecture | `docs/architecture/reporting_architecture.md` |
+| Portfolio Engine | `docs/domain/portfolio_engine.md` |
+| Risk Engine | `docs/domain/risk_engine.md` |
+| Stress Testing | `docs/domain/stress_testing.md` |
+| Reporting Contract | `docs/domain/reporting_contract.md` |
+| Breach Management | `docs/operations/breach_management.md` |
+| Risk Control | `docs/operations/risk_control.md` |
+| Risk Snapshots | `docs/operations/risk_snapshots.md` |
+| Development Standards | `docs/governance/development.md` |
+| AI Agent Guidelines | `AGENTS.md` |

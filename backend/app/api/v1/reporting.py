@@ -1,18 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from datetime import date
-from typing import List, Optional
+from typing import Optional
 import io
 import csv
 
 from app.db.database import get_db
-from app.db.models import PortfolioRiskSnapshot, Portfolio
+from app.db.models import PortfolioRiskSnapshot
 from app.reporting.snapshot_service import SnapshotService
 from app.reporting.executive_report import ExecutiveReportService
 
+from app.auth.dependencies import PermissionChecker
+from app.auth.permissions import PORTFOLIO_READ, REPORT_GENERATE
+
 router = APIRouter()
 
-@router.post("/portfolios/{portfolio_id}/snapshots")
+@router.post("/portfolios/{portfolio_id}/snapshots", dependencies=[Depends(PermissionChecker(REPORT_GENERATE))])
 def generate_snapshot(portfolio_id: int, valuation_date: date = None, db: Session = Depends(get_db)):
     if not valuation_date:
         valuation_date = date.today()
@@ -22,7 +25,7 @@ def generate_snapshot(portfolio_id: int, valuation_date: date = None, db: Sessio
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/portfolios/{portfolio_id}/snapshots")
+@router.get("/portfolios/{portfolio_id}/snapshots", dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 def get_snapshots(
     portfolio_id: int, 
     date_from: Optional[date] = None, 
@@ -38,7 +41,7 @@ def get_snapshots(
         
     return query.order_by(PortfolioRiskSnapshot.snapshot_date.asc()).limit(limit).all()
 
-@router.get("/portfolios/{portfolio_id}/snapshots/latest")
+@router.get("/portfolios/{portfolio_id}/snapshots/latest", dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 def get_latest_snapshot(portfolio_id: int, db: Session = Depends(get_db)):
     snapshot = db.query(PortfolioRiskSnapshot).filter(
         PortfolioRiskSnapshot.portfolio_id == portfolio_id
@@ -49,7 +52,7 @@ def get_latest_snapshot(portfolio_id: int, db: Session = Depends(get_db)):
         
     return snapshot
 
-@router.get("/portfolios/{portfolio_id}/executive-report")
+@router.get("/portfolios/{portfolio_id}/executive-report", dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 def get_executive_report(portfolio_id: int, snapshot_date: Optional[date] = None, db: Session = Depends(get_db)):
     if not snapshot_date:
         latest = db.query(PortfolioRiskSnapshot).filter(
@@ -64,7 +67,7 @@ def get_executive_report(portfolio_id: int, snapshot_date: Optional[date] = None
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/portfolios/{portfolio_id}/executive-report.csv")
+@router.get("/portfolios/{portfolio_id}/executive-report.csv", dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 def export_snapshots_csv(portfolio_id: int, db: Session = Depends(get_db)):
     snapshots = db.query(PortfolioRiskSnapshot).filter(
         PortfolioRiskSnapshot.portfolio_id == portfolio_id
@@ -95,7 +98,7 @@ def export_snapshots_csv(portfolio_id: int, db: Session = Depends(get_db)):
         
     return Response(content=output.getvalue(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=snapshots.csv"})
 
-@router.get("/portfolios/{portfolio_id}/executive-report.pdf")
+@router.get("/portfolios/{portfolio_id}/executive-report.pdf", dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 def export_executive_report_pdf(portfolio_id: int, snapshot_date: Optional[date] = None, db: Session = Depends(get_db)):
     if not snapshot_date:
         latest = db.query(PortfolioRiskSnapshot).filter(

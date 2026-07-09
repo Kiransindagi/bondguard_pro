@@ -25,7 +25,10 @@ from app.risk_engine.market_risk import (
 import pandas as pd
 import numpy as np
 
-router = APIRouter()
+from app.auth.dependencies import PermissionChecker
+from app.auth.permissions import RISK_READ
+
+router = APIRouter(dependencies=[Depends(PermissionChecker(RISK_READ))])
 
 @router.get("/portfolios/{portfolio_id}/availability")
 def get_availability(portfolio_id: int, db: Session = Depends(get_db)):

@@ -1,4 +1,3 @@
-import pytest
 from decimal import Decimal
 from app.risk_engine.liquidity_risk import (
     calculate_liquidity_score,

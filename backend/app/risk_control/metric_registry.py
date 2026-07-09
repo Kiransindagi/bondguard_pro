@@ -1,5 +1,4 @@
-from typing import Any, Callable, Dict, Protocol, Optional
-from decimal import Decimal
+from typing import Any, Dict, Protocol, Optional
 from datetime import date
 from .enums import MetricType
 from .types import NormalizedMetricResult

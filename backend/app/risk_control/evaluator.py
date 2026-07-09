@@ -1,7 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
 from decimal import Decimal
-from typing import Optional
 
 from app.db.models import RiskEvaluationRun, RiskLimitResult
 from app.risk_control.enums import MetricType, ResultStatus, LimitDirection, EvaluationOverallStatus

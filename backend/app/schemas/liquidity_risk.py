@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import date, datetime
 from app.risk_engine.liquidity_risk.types import LiquidityClass, HorizonBucket, LimitStatus, StressScenarioType

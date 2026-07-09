@@ -6,10 +6,6 @@ from app.risk_engine.market_risk import (
     calculate_component_var,
     calculate_marginal_var
 )
-from fastapi.testclient import TestClient
-from app.main import app
-
-client = TestClient(app)
 
 def test_historical_var():
     pnl = np.array([-100, -50, 0, 50, 100])
@@ -48,7 +44,7 @@ def test_component_marginal_var():
     marg_var = calculate_marginal_var(exp, cov, var)
     assert len(marg_var) == 2
 
-def test_availability_api(db_session):
+def test_availability_api(client):
     response = client.get("/api/v1/market-risk/portfolios/1/availability")
     if response.status_code == 200:
         data = response.json()

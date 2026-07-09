@@ -1,54 +1,66 @@
-# Python
+# ─── Python bytecode and caches ───────────────────────────────────────────────
 __pycache__/
 *.py[cod]
+*.pyo
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+
+# ─── Coverage ─────────────────────────────────────────────────────────────────
 .coverage
+.coverage.*
 htmlcov/
 
-# Virtual environments
+# ─── Virtual environments ─────────────────────────────────────────────────────
 venv/
 .venv/
+env/
+.env.d/
 
-# Environment secrets
+# ─── Secrets ─ .env files (preserve example templates) ───────────────────────
 .env
 .env.*
 !.env.example
 
-# Frontend
+# ─── SQLite development and test databases ────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ─── Frontend — Node & Vite ───────────────────────────────────────────────────
 node_modules/
 dist/
 .vite/
 coverage/
 
-# IDE
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Temporary and debug output ───────────────────────────────────────────────
+*.tmp
+*.bak
+test_errors*.txt
+tree_structure.txt
+final_tree.txt
+split.py
+
+# ─── Python packaging ─────────────────────────────────────────────────────────
+*.egg-info/
+build/
+dist/
+*.whl
+
+# ─── IDE-specific ─────────────────────────────────────────────────────────────
 .idea/
 .vscode/
-
-# OS
+*.swp
+*.swo
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Logs
-*.log
-
-# Local AI coding tools
+# ─── Local AI coding tool data ────────────────────────────────────────────────
 .claude/
-
-# Generated repository inspection files
-final_tree.txt
-
-# Python packaging
-*.egg-info/
-build/
-
-# Temporary files
-*.tmp
-*.bak
-
-# Local databases
-*.db
-*.sqlite
-*.sqlite3
+.gemini/
+.antigravity/

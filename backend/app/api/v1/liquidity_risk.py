@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import List
 from datetime import date
 
 from app.db.database import get_db
@@ -12,7 +12,6 @@ from app.schemas.liquidity_risk import (
     HorizonDistribution,
     ConcentrationSummaryResponse,
     ConcentrationBreakdownItem,
-    ConcentrationLimitResponse,
     LimitUtilizationResponse,
     LiquidityAdjustedVaRResponse,
     LiquidityStressRequest,
@@ -21,17 +20,16 @@ from app.schemas.liquidity_risk import (
 from app.services.liquidity_snapshot import generate_liquidity_snapshot
 from app.risk_engine.liquidity_risk import (
     calculate_concentration,
-    calculate_hhi,
-    evaluate_limit,
-    calculate_position_liquidity,
-    aggregate_portfolio_liquidity,
-    LiquidityAssumptionConfig
+    calculate_hhi
 )
 from app.risk_engine.liquidity_risk.types import StressScenarioType, LimitStatus
 
+from app.auth.dependencies import PermissionChecker
+from app.auth.permissions import RISK_READ, LIQUIDITY_EXECUTE
+
 router = APIRouter()
 
-@router.get("/portfolios/{portfolio_id}/summary", response_model=PortfolioLiquidityResponse)
+@router.get("/portfolios/{portfolio_id}/summary", response_model=PortfolioLiquidityResponse, dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_portfolio_liquidity_summary(portfolio_id: int, db: Session = Depends(get_db)):
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
     if not portfolio:
@@ -187,7 +185,7 @@ def get_portfolio_concentration(portfolio_id: int, dimension: str = "issuer", db
         top_5_weight=top_5
     )
 
-@router.post("/portfolios/{portfolio_id}/snapshot", response_model=LiquiditySnapshotResponse)
+@router.post("/portfolios/{portfolio_id}/snapshot", response_model=LiquiditySnapshotResponse, dependencies=[Depends(PermissionChecker(LIQUIDITY_EXECUTE))])
 def create_liquidity_snapshot(portfolio_id: int, assumption_id: int = None, db: Session = Depends(get_db)):
     try:
         snapshot = generate_liquidity_snapshot(db, portfolio_id, date.today(), assumption_id)
@@ -245,7 +243,7 @@ def create_liquidity_snapshot(portfolio_id: int, assumption_id: int = None, db: 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/portfolios/{portfolio_id}/limits", response_model=List[LimitUtilizationResponse])
+@router.get("/portfolios/{portfolio_id}/limits", response_model=List[LimitUtilizationResponse], dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_portfolio_limits(portfolio_id: int, db: Session = Depends(get_db)):
     limits = db.query(ConcentrationLimit).filter(
         (ConcentrationLimit.portfolio_id == portfolio_id) | (ConcentrationLimit.portfolio_id == None),
@@ -264,7 +262,7 @@ def get_portfolio_limits(portfolio_id: int, db: Session = Depends(get_db)):
         ))
     return resp
 
-@router.post("/portfolios/{portfolio_id}/stress", response_model=LiquidityStressResponse)
+@router.post("/portfolios/{portfolio_id}/stress", response_model=LiquidityStressResponse, dependencies=[Depends(PermissionChecker(LIQUIDITY_EXECUTE))])
 def stress_liquidity(portfolio_id: int, request: LiquidityStressRequest, db: Session = Depends(get_db)):
     snapshot = db.query(LiquiditySnapshot).filter(LiquiditySnapshot.portfolio_id == portfolio_id).order_by(LiquiditySnapshot.id.desc()).first()
     if not snapshot:
@@ -289,7 +287,7 @@ def stress_liquidity(portfolio_id: int, request: LiquidityStressRequest, db: Ses
         stressed_days_to_liquidate=snapshot.weighted_days_to_liquidate * (mult if mult > 1 else 1.2)
     )
 
-@router.get("/portfolios/{portfolio_id}/liquidity-adjusted-var", response_model=LiquidityAdjustedVaRResponse)
+@router.get("/portfolios/{portfolio_id}/liquidity-adjusted-var", response_model=LiquidityAdjustedVaRResponse, dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_liquidity_adjusted_var(portfolio_id: int, db: Session = Depends(get_db)):
     snapshot = db.query(LiquiditySnapshot).filter(LiquiditySnapshot.portfolio_id == portfolio_id).order_by(LiquiditySnapshot.id.desc()).first()
     if not snapshot:
@@ -309,7 +307,7 @@ def get_liquidity_adjusted_var(portfolio_id: int, db: Session = Depends(get_db))
         limitations="Market VaR excludes historical credit-spread VaR under current model availability."
     )
 
-@router.get("/portfolios/{portfolio_id}/history", response_model=List[LiquiditySnapshotResponse])
+@router.get("/portfolios/{portfolio_id}/history", response_model=List[LiquiditySnapshotResponse], dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_portfolio_liquidity_history(portfolio_id: int, db: Session = Depends(get_db)):
     snapshots = db.query(LiquiditySnapshot).filter(LiquiditySnapshot.portfolio_id == portfolio_id).order_by(LiquiditySnapshot.valuation_date.desc(), LiquiditySnapshot.id.desc()).all()
     resp = []

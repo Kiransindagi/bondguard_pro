@@ -1,4 +1,4 @@
-from seed_portfolio import seed_data
+from scripts.seed.seed_portfolio import seed_data
 from app.db.models import Bond, Portfolio, Transaction
 from datetime import date
 

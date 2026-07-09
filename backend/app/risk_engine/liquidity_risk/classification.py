@@ -1,4 +1,4 @@
-from .types import LiquidityClass, LiquidityAssumptionConfig
+from .types import LiquidityClass
 
 def classify_liquidity(score: float) -> LiquidityClass:
     if score >= 80:

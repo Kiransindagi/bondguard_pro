@@ -12,7 +12,10 @@ from app.risk_engine.position_risk import calculate_position_risk
 from app.risk_engine.curve import YieldCurve
 from app.risk_engine.exceptions import RiskEngineError
 
-router = APIRouter()
+from app.auth.dependencies import PermissionChecker
+from app.auth.permissions import RISK_READ
+
+router = APIRouter(dependencies=[Depends(PermissionChecker(RISK_READ))])
 
 @router.get("/bonds/{bond_id}", response_model=BondRiskResult)
 def get_bond_risk(

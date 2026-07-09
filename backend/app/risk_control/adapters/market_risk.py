@@ -3,7 +3,6 @@ from datetime import date
 from decimal import Decimal
 from app.risk_control.enums import MetricType
 from app.risk_control.types import NormalizedMetricResult
-from app.risk_control.metric_registry import MetricAdapter
 
 class MarketRiskAdapter:
     def get_value(self, metric: MetricType, portfolio_id: int, valuation_date: date, db: Session) -> NormalizedMetricResult:
@@ -17,19 +16,19 @@ class MarketRiskAdapter:
             
             if metric == MetricType.HISTORICAL_VAR_95_1D:
                 res = get_historical_var(portfolio_id=portfolio_id, confidence_level=0.95, horizon_days=1, db=db)
-                val = Decimal(res.get("var_value", 0))
+                val = Decimal(res.get("var_currency", 0))
                 metadata = res
             elif metric == MetricType.PARAMETRIC_VAR_95_1D:
                 res = get_parametric_var(portfolio_id=portfolio_id, confidence_level=0.95, horizon_days=1, db=db)
-                val = Decimal(res.get("var_value", 0))
+                val = Decimal(res.get("var_currency", 0))
                 metadata = res
             elif metric == MetricType.EXPECTED_SHORTFALL_95_1D:
-                res = get_expected_shortfall(portfolio_id=portfolio_id, confidence_level=0.95, horizon_days=1, db=db)
-                val = Decimal(res.get("es_value", 0))
+                res = get_expected_shortfall(portfolio_id=portfolio_id, confidence_level=0.95, db=db)
+                val = Decimal(res.get("expected_shortfall_currency", 0))
                 metadata = res
                 
-            if metadata.get("model_status"):
-                model_status = metadata.get("model_status")
+            if metadata.get("model_type"):
+                model_status = metadata.get("model_type")
                 if model_status != "FULL_FACTOR_MODEL":
                     limitations = metadata.get("limitations", "Missing credit spread risk")
             
