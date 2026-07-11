@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import date
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel
 
 from app.db.database import get_db
-from app.db.models import User, SavedScenario, SavedScenarioRun
+from app.db.models import User, SavedScenario
 from app.auth.dependencies import get_current_user, PermissionChecker
 from app.auth.permissions import STRESS_EXECUTE, PORTFOLIO_READ
 from app.scenario_lab.validator import ScenarioValidator
@@ -96,7 +96,7 @@ def get_scenarios(
     List all scenarios visible to the user (either owned by them or marked public).
     """
     return db.query(SavedScenario).filter(
-        (SavedScenario.creator_user_id == current_user.id) | (SavedScenario.is_public == True)
+        (SavedScenario.creator_user_id == current_user.id) | (SavedScenario.is_public.is_(True))
     ).all()
 
 @router.get("/scenarios/{id}", dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])

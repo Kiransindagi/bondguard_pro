@@ -1,7 +1,8 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator, field_validator
 from typing import Optional
 from datetime import date, datetime
 from decimal import Decimal
+import re
 
 class BondBase(BaseModel):
     isin: str = Field(..., description="ISIN")
@@ -21,6 +22,27 @@ class BondBase(BaseModel):
     sector: Optional[str] = None
     country: Optional[str] = None
 
+    @field_validator('isin')
+    @classmethod
+    def validate_isin(cls, v: str) -> str:
+        if not re.match(r"^[A-Z]{2}[A-Z0-9]{9}\d$", v):
+            raise ValueError("Invalid ISIN format: must be 2 uppercase letters, 9 alphanumeric characters, and 1 digit")
+        return v
+
+    @field_validator('cusip')
+    @classmethod
+    def validate_cusip(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not re.match(r"^[A-Z0-9]{9}$", v):
+            raise ValueError("Invalid CUSIP format: must be 9 alphanumeric characters")
+        return v
+
+    @field_validator('issuer_name', 'bond_name', 'bond_type')
+    @classmethod
+    def validate_non_empty(cls, v: str, info) -> str:
+        if not v or not v.strip():
+            raise ValueError(f"{info.field_name} cannot be empty")
+        return v.strip()
+
     @model_validator(mode='after')
     def check_dates(self):
         if self.maturity_date <= self.issue_date:
@@ -35,6 +57,14 @@ class BondUpdate(BaseModel):
     bond_name: Optional[str] = None
     credit_rating: Optional[str] = None
     sector: Optional[str] = None
+    country: Optional[str] = None
+
+    @field_validator('issuer_name', 'bond_name', 'credit_rating', 'sector', 'country')
+    @classmethod
+    def validate_non_empty_optional(cls, v: Optional[str], info) -> Optional[str]:
+        if v is not None and (not v or not v.strip()):
+            raise ValueError(f"{info.field_name} cannot be empty if provided")
+        return v.strip() if v is not None else None
 
 class BondResponse(BondBase):
     id: int

@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import date, datetime
 from decimal import Decimal
@@ -43,7 +43,8 @@ class RiskLimitResponse(BaseModel):
     effective_to: Optional[date]
     is_active: bool
 
-    model_config = ConfigDict(from_attributes=True)
+
+    model_config = ConfigDict(from_attributes=True, json_encoders={Decimal: float})
 
 class ReportMetadata(BaseModel):
     valuation_date: date
@@ -52,38 +53,38 @@ class ReportMetadata(BaseModel):
     overall_status: str
 
 class PortfolioRiskSection(BaseModel):
-    total_market_value: Optional[Decimal]
-    weighted_modified_duration: Optional[Decimal]
-    total_dv01: Optional[Decimal]
+    total_market_value: Optional[float]
+    weighted_modified_duration: Optional[float]
+    total_dv01: Optional[float]
 
 class MarketRiskSection(BaseModel):
-    historical_var: Optional[Decimal]
-    parametric_var: Optional[Decimal]
-    expected_shortfall: Optional[Decimal]
+    historical_var: Optional[float]
+    parametric_var: Optional[float]
+    expected_shortfall: Optional[float]
     model_status: str
     limitations: Optional[str]
 
 class StressRiskSection(BaseModel):
     worst_scenario_name: Optional[str]
     worst_scenario_code: Optional[str]
-    pnl: Optional[Decimal]
-    loss_percent: Optional[Decimal]
+    pnl: Optional[float]
+    loss_percent: Optional[float]
 
 class LiquidityRiskSection(BaseModel):
-    liquidity_score: Optional[Decimal]
-    liquidation_cost: Optional[Decimal]
-    liquidation_cost_bps: Optional[Decimal]
-    weighted_days_to_liquidate: Optional[Decimal]
-    max_days_to_liquidate: Optional[Decimal]
+    liquidity_score: Optional[float]
+    liquidation_cost: Optional[float]
+    liquidation_cost_bps: Optional[float]
+    weighted_days_to_liquidate: Optional[float]
+    max_days_to_liquidate: Optional[float]
     model_label: str
     limitations: Optional[str]
 
 class ConcentrationSection(BaseModel):
     largest_issuer: Optional[str]
-    largest_issuer_weight: Optional[Decimal]
+    largest_issuer_weight: Optional[float]
     largest_sector: Optional[str]
-    largest_sector_weight: Optional[Decimal]
-    max_single_position_weight: Optional[Decimal]
+    largest_sector_weight: Optional[float]
+    max_single_position_weight: Optional[float]
 
 class LimitSummary(BaseModel):
     evaluated_limit_count: int
@@ -141,4 +142,4 @@ class RiskReportResponse(BaseModel):
     active_breaches: List[ActiveBreachItem]
     model_governance: ModelGovernance
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, json_encoders={Decimal: float})

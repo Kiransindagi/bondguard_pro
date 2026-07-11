@@ -1,12 +1,11 @@
 import logging
 from datetime import date, datetime, timezone
-from typing import Optional, Dict, Any
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.core.observability import log_duration
 
 from app.db.models import (
-    AnalyticsRun, PortfolioRiskSnapshot, PipelineRun, DataQualityRun, Portfolio, YieldCurvePoint
+    AnalyticsRun, PipelineRun, DataQualityRun, Portfolio, YieldCurvePoint
 )
 from app.reporting.snapshot_service import SnapshotService
 

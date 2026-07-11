@@ -1,13 +1,13 @@
 import logging
 import math
 from datetime import date, datetime, timezone
-from typing import List, Dict, Any, Optional
+from typing import List, Any, Optional
 from sqlalchemy.orm import Session
 from app.core.observability import log_duration
 
 from app.db.models import (
     DataQualityRun, DataQualityResult, YieldCurvePoint, 
-    CreditSpread, MacroObservation, MarketPrice, Instrument, PipelineRun
+    CreditSpread, MacroObservation, MarketPrice, Instrument
 )
 from app.data_pipeline.registry import get_active_datasets, get_dataset_metadata
 

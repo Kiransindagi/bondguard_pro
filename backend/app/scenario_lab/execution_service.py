@@ -1,9 +1,9 @@
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from sqlalchemy.orm import Session
 import logging
 
-from app.db.models import Portfolio, SavedScenario, SavedScenarioRun
+from app.db.models import Portfolio
 from app.risk_engine.position_risk import calculate_position_risk
 from app.risk_engine.types import BondRiskInput
 from app.risk_engine.stress_testing.scenario_pricing import calculate_scenario_pricing

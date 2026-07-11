@@ -69,7 +69,7 @@ def test_evaluation_breach_lifecycle(db_session_seeded):
     # 1. First violation
     registry.register(MetricType.TOTAL_DV01, MockAdapter(Decimal(150)))
     from app.risk_control.evaluator import LimitEvaluator
-    run1 = LimitEvaluator.evaluate_portfolio(db_session_seeded, 1, date.today())
+    _run1 = LimitEvaluator.evaluate_portfolio(db_session_seeded, 1, date.today())
     
     breaches = db_session_seeded.query(Breach).filter(Breach.portfolio_id == 1, Breach.risk_limit_id == l1.id).all()
     assert len(breaches) == 1
@@ -89,19 +89,19 @@ def test_evaluation_breach_lifecycle(db_session_seeded):
     db_session_seeded.commit()
     
     # 4. Repeated violation after acknowledgement
-    run3 = LimitEvaluator.evaluate_portfolio(db_session_seeded, 1, date.today())
+    _run3 = LimitEvaluator.evaluate_portfolio(db_session_seeded, 1, date.today())
     b_ack = db_session_seeded.query(Breach).filter(Breach.id == b_id).first()
     assert b_ack.status == BreachStatus.ACKNOWLEDGED.value
     
     # 5. Recovery
     registry.register(MetricType.TOTAL_DV01, MockAdapter(Decimal(90)))
-    run4 = LimitEvaluator.evaluate_portfolio(db_session_seeded, 1, date.today())
+    _run4 = LimitEvaluator.evaluate_portfolio(db_session_seeded, 1, date.today())
     b_res = db_session_seeded.query(Breach).filter(Breach.id == b_id).first()
     assert b_res.status == BreachStatus.RESOLVED.value
     
     # 6. Re-breach
     registry.register(MetricType.TOTAL_DV01, MockAdapter(Decimal(110)))
-    run5 = LimitEvaluator.evaluate_portfolio(db_session_seeded, 1, date.today())
+    _run5 = LimitEvaluator.evaluate_portfolio(db_session_seeded, 1, date.today())
     all_b = db_session_seeded.query(Breach).filter(Breach.portfolio_id == 1, Breach.risk_limit_id == l1.id).all()
     assert len(all_b) == 2
     assert all_b[0].status == BreachStatus.RESOLVED.value

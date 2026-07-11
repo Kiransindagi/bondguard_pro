@@ -7,7 +7,6 @@ from pydantic import BaseModel
 
 from app.db.database import get_db
 from app.core.config import settings
-from app.api.v1 import portfolios, bonds, transactions, market, risk, market_risk, stress_testing, liquidity_risk
 from app.db.models import PipelineRun, DataQualityRun, AnalyticsRun
 from app.risk_engine.market_risk.availability import check_model_availability
 

@@ -8,8 +8,6 @@ export const Login: React.FC = () => {
   const { login, error, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Get the redirect path from route state or default to home page
   const from = (location.state as any)?.from?.pathname || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,98 +20,156 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-screen items-center justify-center bg-slate-950 p-4 font-sans text-white relative overflow-hidden">
-      {/* Background radial glow */}
-      <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-blue-600/10 blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-violet-600/10 blur-[100px] pointer-events-none"></div>
+    <div style={{
+      minHeight: '100vh', width: '100vw',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      backgroundColor: 'var(--bg-root)',
+      position: 'relative', overflow: 'hidden',
+      fontFamily: 'var(--font-sans)',
+    }}>
+      {/* Ambient glow */}
+      <div style={{
+        position: 'absolute', top: '20%', left: '35%',
+        width: '420px', height: '420px', borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '10%', right: '25%',
+        width: '360px', height: '360px', borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(56,189,248,0.04) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
 
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/60 p-8 backdrop-blur-xl shadow-2xl relative z-10">
-        <div className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/20">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-7 w-7 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
+      {/* Login panel */}
+      <div style={{
+        width: '100%', maxWidth: '380px',
+        backgroundColor: 'var(--bg-panel)',
+        border: '1px solid var(--border-muted)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '40px 36px 36px',
+        position: 'relative', zIndex: 1,
+      }}>
+        {/* Logo mark */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{
+            width: '42px', height: '42px', margin: '0 auto 18px',
+            borderRadius: 'var(--radius-md)',
+            backgroundColor: 'var(--accent-dim)',
+            border: '1px solid var(--accent-border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-            BondGuard Pro
-          </h2>
-          <p className="mt-2 text-sm text-slate-400">
-            Fixed Income Risk & Analytics Management
-          </p>
+          <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+            BondGuard<span style={{ color: 'var(--accent)' }}> Pro</span>
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', letterSpacing: '0.04em' }}>
+            Institutional Fixed Income Risk Platform
+          </div>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-lg border border-red-500/20 bg-red-950/40 p-4 text-sm text-red-400 flex items-start space-x-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <span>{error}</span>
+            <div style={{
+              backgroundColor: 'rgba(248,113,113,0.08)',
+              border: '1px solid var(--border-danger)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '10px 14px', marginBottom: '20px',
+              display: 'flex', alignItems: 'center', gap: '8px',
+            }}>
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'var(--text-critical)', flexShrink: 0 }} />
+              <span style={{ fontSize: '12px', color: 'var(--text-critical)' }}>{error}</span>
             </div>
           )}
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="username" className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Username or Email
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-white placeholder-slate-600 transition duration-150 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="analyst / manager / admin"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-white placeholder-slate-600 transition duration-150 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="••••••••"
-              />
-            </div>
+          <div style={{ marginBottom: '18px' }}>
+            <label style={{
+              display: 'block', fontSize: '10px', fontWeight: 600,
+              letterSpacing: '0.10em', textTransform: 'uppercase',
+              color: 'var(--text-muted)', marginBottom: '6px',
+            }}>
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              required
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder="analyst / manager / admin"
+              style={{
+                width: '100%', padding: '10px 14px',
+                backgroundColor: 'var(--bg-inset)',
+                border: '1px solid var(--border-muted)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text-primary)', fontSize: '13px',
+                fontFamily: 'var(--font-sans)',
+                outline: 'none', transition: 'var(--transition)',
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = 'var(--accent-border)'}
+              onBlur={e => e.currentTarget.style.borderColor = 'var(--border-muted)'}
+            />
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative flex w-full justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition duration-150 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-              ) : (
-                'Sign In'
-              )}
-            </button>
+          <div style={{ marginBottom: '26px' }}>
+            <label style={{
+              display: 'block', fontSize: '10px', fontWeight: 600,
+              letterSpacing: '0.10em', textTransform: 'uppercase',
+              color: 'var(--text-muted)', marginBottom: '6px',
+            }}>
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Enter password"
+              style={{
+                width: '100%', padding: '10px 14px',
+                backgroundColor: 'var(--bg-inset)',
+                border: '1px solid var(--border-muted)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text-primary)', fontSize: '13px',
+                fontFamily: 'var(--font-sans)',
+                outline: 'none', transition: 'var(--transition)',
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = 'var(--accent-border)'}
+              onBlur={e => e.currentTarget.style.borderColor = 'var(--border-muted)'}
+            />
           </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%', padding: '10px',
+              backgroundColor: 'var(--accent)',
+              border: 'none', borderRadius: 'var(--radius-sm)',
+              color: '#fff', fontSize: '13px', fontWeight: 600,
+              fontFamily: 'var(--font-sans)',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+              transition: 'var(--transition)',
+            }}
+          >
+            {loading ? 'Authenticating...' : 'Sign In'}
+          </button>
         </form>
 
-        <div className="mt-8 border-t border-slate-800/80 pt-6 text-center text-xs text-slate-500">
-          <p>Secure authentication with role-based access boundaries.</p>
+        <div style={{
+          marginTop: '28px', paddingTop: '18px',
+          borderTop: '1px solid var(--border-subtle)',
+          textAlign: 'center',
+        }}>
+          <p style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.03em' }}>
+            Secure authentication with role-based access control
+          </p>
         </div>
       </div>
     </div>

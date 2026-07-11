@@ -174,7 +174,7 @@ def get_yield_curve(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Incomplete yield curve data")
 
     # This proves the curve abstraction works
-    curve = YieldCurve(tenor_map)
+    _curve = YieldCurve(tenor_map)
 
     return {
         "observation_date": obs_date,

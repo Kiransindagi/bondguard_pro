@@ -22,7 +22,7 @@ def generate_liquidity_snapshot(db: Session, portfolio_id: int, valuation_date: 
     if assumption_id:
         assumption = db.query(LiquidityAssumption).filter(LiquidityAssumption.id == assumption_id).first()
     else:
-        assumption = db.query(LiquidityAssumption).filter(LiquidityAssumption.is_active == True).order_by(LiquidityAssumption.id.desc()).first()
+        assumption = db.query(LiquidityAssumption).filter(LiquidityAssumption.is_active.is_(True)).order_by(LiquidityAssumption.id.desc()).first()
 
     if not assumption:
         raise ValueError("No active liquidity assumption found")

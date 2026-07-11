@@ -1,219 +1,209 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { fetchPortfolioSummary, fetchPortfolioRiskSummary, getPortfolioRiskReport, getSnapshots } from '../api/client';
+import { usePortfolio } from '../auth/PortfolioContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PageHeader, MetricCard, DataPanel, SectionHeader, StatusBadge, ModelStatusBanner, LoadingState, EmptyState, KVRow } from '../components/ui';
+import { RC_GRID_PROPS, RC_AXIS_STYLE, RC_TOOLTIP_STYLE, RC_LEGEND_STYLE, CHART_COLORS } from '../lib/plotlyTheme';
 
 export const Overview = () => {
-  const portfolioId = 1;
+  const { selectedPortfolioId: portfolioId } = usePortfolio();
 
   const { data: summary, isLoading: isSummaryLoading } = useQuery({
     queryKey: ['portfolioSummary', portfolioId],
-    queryFn: () => fetchPortfolioSummary(portfolioId)
+    queryFn: () => fetchPortfolioSummary(portfolioId!),
+    enabled: !!portfolioId,
   });
 
   const { data: riskSummary, isLoading: isRiskLoading } = useQuery({
     queryKey: ['portfolioRiskSummary', portfolioId],
-    queryFn: () => fetchPortfolioRiskSummary(portfolioId)
+    queryFn: () => fetchPortfolioRiskSummary(portfolioId!),
+    enabled: !!portfolioId,
   });
 
   const { data: report, isLoading: isReportLoading } = useQuery({
     queryKey: ['riskReport', portfolioId],
-    queryFn: () => getPortfolioRiskReport(portfolioId)
+    queryFn: () => getPortfolioRiskReport(portfolioId!),
+    enabled: !!portfolioId,
   });
 
   const { data: snapshots, isLoading: isSnapshotsLoading } = useQuery({
     queryKey: ['snapshots', portfolioId],
-    queryFn: () => getSnapshots(portfolioId)
+    queryFn: () => getSnapshots(portfolioId!),
+    enabled: !!portfolioId,
   });
+
+  const fmtCurrency = (v: any) => '$' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtNum = (v: any, d = 2) => Number(v || 0).toFixed(d);
+
+  if (!portfolioId) {
+    return (
+      <div>
+        <PageHeader title="Executive Overview" description="Real-time portfolio risk and performance summary" />
+        <EmptyState message="No portfolio selected. Please select a portfolio to view overview." />
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h1 style={{ fontSize: '2rem', marginBottom: '2rem', color: '#e2e8f0' }}>Dashboard Overview</h1>
+      <PageHeader
+        title="Executive Overview"
+        description="Real-time portfolio risk and performance summary"
+        context={`${summary ? summary.name : 'No Portfolio'}  |  ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+      />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
-        {/* Portfolio Stats */}
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: '#94a3b8' }}>Portfolio</h3>
-          {isSummaryLoading ? <div>Loading...</div> : summary ? (
-            <>
-              <div style={{ fontSize: '1.5rem', color: '#e2e8f0', marginBottom: '0.5rem' }}>${Number(summary.total_market_value).toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
-              <div style={{ color: summary.total_pnl >= 0 ? '#22c55e' : '#ef4444' }}>
-                Unrealized PnL: {summary.total_pnl >= 0 ? '+' : ''}{Number(summary.total_pnl).toLocaleString(undefined, {minimumFractionDigits: 2})}
-              </div>
-            </>
-          ) : <div>Data unavailable</div>}
-        </div>
-
-        {/* Risk Stats */}
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: '#94a3b8' }}>Duration Risk</h3>
-          {isRiskLoading ? <div>Loading...</div> : riskSummary ? (
-            <>
-              <div style={{ fontSize: '1.5rem', color: '#e2e8f0', marginBottom: '0.5rem' }}>
-                {Number(riskSummary.weighted_modified_duration).toFixed(2)} yrs
-              </div>
-              <div style={{ color: '#e2e8f0' }}>DV01: ${Number(riskSummary.total_dv01).toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
-            </>
-          ) : <div>Data unavailable</div>}
-        </div>
-
-        {/* Market Risk */}
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: '#94a3b8' }}>Market Risk</h3>
-          {isReportLoading ? <div>Loading...</div> : report && report.market_risk ? (
-            <>
-              <div style={{ fontSize: '1.5rem', color: '#e2e8f0', marginBottom: '0.5rem' }}>
-                VaR: {report.market_risk.historical_var !== null ? '$' + Number(report.market_risk.historical_var).toLocaleString(undefined, {minimumFractionDigits: 2}) : 'N/A'}
-              </div>
-              <div style={{ color: '#e2e8f0' }}>
-                ES: {report.market_risk.expected_shortfall !== null ? '$' + Number(report.market_risk.expected_shortfall).toLocaleString(undefined, {minimumFractionDigits: 2}) : 'N/A'}
-              </div>
-            </>
-          ) : <div>Data unavailable</div>}
-        </div>
-
-        {/* Risk Control */}
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: '#94a3b8' }}>Risk Control</h3>
-          {isReportLoading ? <div>Loading...</div> : report && report.limit_summary ? (
-            <>
-              <div style={{ fontSize: '1.5rem', color: report.report_metadata.overall_status === 'BREACH' ? '#ef4444' : report.report_metadata.overall_status === 'WARNING' ? '#eab308' : '#22c55e', marginBottom: '0.5rem' }}>
-                {report.report_metadata.overall_status}
-              </div>
-              <div style={{ color: '#e2e8f0' }}>
-                <span style={{ color: '#ef4444', marginRight: '0.5rem' }}>{report.breach_summary.open_count} Open Breaches</span>
-              </div>
-            </>
-          ) : <div>Data unavailable</div>}
-        </div>
+      {/* ── Core metrics strip ──────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+        <MetricCard
+          label="Total Market Value"
+          value={isSummaryLoading ? '...' : summary ? fmtCurrency(summary.total_market_value) : 'N/A'}
+          accent
+        />
+        <MetricCard
+          label="Unrealized P&L"
+          value={isSummaryLoading ? '...' : summary ? fmtCurrency(summary.total_pnl) : 'N/A'}
+          sub={summary && Number(summary.total_pnl) >= 0 ? 'Gain' : 'Loss'}
+          accent={summary && Number(summary.total_pnl) >= 0}
+          danger={summary && Number(summary.total_pnl) < 0}
+        />
+        <MetricCard
+          label="Modified Duration"
+          value={isRiskLoading ? '...' : riskSummary ? fmtNum(riskSummary.weighted_modified_duration) : 'N/A'}
+          unit="yrs"
+        />
+        <MetricCard
+          label="Total DV01"
+          value={isRiskLoading ? '...' : riskSummary ? fmtCurrency(riskSummary.total_dv01) : 'N/A'}
+        />
+        <MetricCard
+          label="VaR (95% 1d)"
+          value={isReportLoading ? '...' : report?.market_risk?.historical_var !== null && report?.market_risk?.historical_var !== undefined
+            ? fmtCurrency(report.market_risk.historical_var) : 'N/A'}
+          warning={report?.market_risk?.model_status === 'RATE_ONLY_MODEL'}
+        />
+        <MetricCard
+          label="Active Breaches"
+          value={isReportLoading ? '...' : report?.breach_summary ? String(report.breach_summary.open_count) : '0'}
+          danger={report?.breach_summary && report.breach_summary.open_count > 0}
+        />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-           <h3 style={{ margin: '0 0 1rem 0', color: '#e2e8f0' }}>Stress Testing</h3>
-           {isReportLoading && <div>Loading...</div>}
-           {!isReportLoading && !report && <div>Data unavailable</div>}
-           {report && report.stress_risk && (
-             <div>
-               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#94a3b8' }}>
-                 <span>Worst Scenario</span>
-                 <span style={{ color: '#e2e8f0' }}>{report.stress_risk.worst_scenario_name || 'N/A'}</span>
-               </div>
-               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
-                 <span>Worst Loss</span>
-                 <span style={{ color: '#ef4444' }}>{report.stress_risk.pnl !== null ? '-$' + Math.abs(Number(report.stress_risk.pnl)).toLocaleString(undefined, {minimumFractionDigits: 2}) : 'N/A'}</span>
-               </div>
-             </div>
-           )}
-        </div>
-        
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-           <h3 style={{ margin: '0 0 1rem 0', color: '#e2e8f0' }}>Liquidity Profile</h3>
-           {isReportLoading && <div>Loading...</div>}
-           {!isReportLoading && !report && <div>Data unavailable</div>}
-           {report && report.liquidity_risk && (
-             <div>
-               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#94a3b8' }}>
-                 <span>Liquidity Score</span>
-                 <span style={{ color: '#e2e8f0' }}>{report.liquidity_risk.liquidity_score !== null ? Number(report.liquidity_risk.liquidity_score).toFixed(2) : 'N/A'} / 100</span>
-               </div>
-               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
-                 <span>Largest Concentration</span>
-                 <span style={{ color: '#e2e8f0' }}>{report.concentration.largest_issuer || 'N/A'} ({(Number(report.concentration.largest_issuer_weight || 0) * 100).toFixed(1)}%)</span>
-               </div>
-             </div>
-           )}
-        </div>
-
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-           <h3 style={{ margin: '0 0 1rem 0', color: '#e2e8f0' }}>Model Governance</h3>
-           {isReportLoading && <div>Loading...</div>}
-           {!isReportLoading && !report && <div>Data unavailable</div>}
-           {report && report.model_governance && (
-             <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#94a3b8' }}>
-                 <span>Market Risk Model</span>
-                 <span style={{ color: report.market_risk.model_status === 'RATE_ONLY_MODEL' ? '#f59e0b' : '#22c55e' }}>{report.market_risk.model_status}</span>
-               </div>
-                {report.model_governance.degraded_models.map((m: string) => (
-                  <div key={m} style={{ color: '#eab308', marginBottom: '0.5rem', fontSize: '0.875rem' }}>⚠️ {m} is Degraded</div>
-                ))}
-                {report.model_governance.proxy_models.map((m: string) => (
-                  <div key={m} style={{ color: '#38bdf8', marginBottom: '0.5rem', fontSize: '0.875rem' }}>ℹ️ {m} (Proxy Active)</div>
-                ))}
-             </div>
-           )}
-        </div>
-      </div>
-
-      {/* Historical Trend Charts */}
-      <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', color: '#e2e8f0' }}>Historical Risk Trends</h2>
-      
-      {isSnapshotsLoading ? <div style={{ color: '#94a3b8' }}>Loading historical data...</div> : (!snapshots || snapshots.length <= 1) ? (
-        <div style={{ backgroundColor: '#1e293b', padding: '2rem', borderRadius: '8px', textAlign: 'center', color: '#94a3b8' }}>
-          Historical trend requires additional snapshots.
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-          
-          <div style={{ backgroundColor: '#1e293b', padding: '1rem', borderRadius: '8px' }}>
-            <h4 style={{ color: '#e2e8f0', marginBottom: '1rem', textAlign: 'center' }}>Portfolio Market Value</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={snapshots}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="snapshot_date" stroke="#94a3b8" tick={{fontSize: 12}} />
-                <YAxis stroke="#94a3b8" tick={{fontSize: 12}} tickFormatter={(val: any) => `$${(val/1000000).toFixed(1)}M`} />
-                <RechartsTooltip contentStyle={{backgroundColor: '#0f172a', borderColor: '#334155', color: '#f1f5f9'}} />
-                <Line type="monotone" dataKey="total_market_value" name="Market Value" stroke="#3b82f6" strokeWidth={2} dot={{r: 3}} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div style={{ backgroundColor: '#1e293b', padding: '1rem', borderRadius: '8px' }}>
-            <h4 style={{ color: '#e2e8f0', marginBottom: '1rem', textAlign: 'center' }}>Modified Duration</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={snapshots}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="snapshot_date" stroke="#94a3b8" tick={{fontSize: 12}} />
-                <YAxis stroke="#94a3b8" tick={{fontSize: 12}} domain={['auto', 'auto']} />
-                <RechartsTooltip contentStyle={{backgroundColor: '#0f172a', borderColor: '#334155', color: '#f1f5f9'}} />
-                <Line type="monotone" dataKey="weighted_modified_duration" name="Mod Dur (yrs)" stroke="#10b981" strokeWidth={2} dot={{r: 3}} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div style={{ backgroundColor: '#1e293b', padding: '1rem', borderRadius: '8px' }}>
-            <h4 style={{ color: '#e2e8f0', marginBottom: '1rem', textAlign: 'center' }}>Total DV01</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={snapshots}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="snapshot_date" stroke="#94a3b8" tick={{fontSize: 12}} />
-                <YAxis stroke="#94a3b8" tick={{fontSize: 12}} />
-                <RechartsTooltip contentStyle={{backgroundColor: '#0f172a', borderColor: '#334155', color: '#f1f5f9'}} />
-                <Line type="monotone" dataKey="total_dv01" name="DV01" stroke="#f59e0b" strokeWidth={2} dot={{r: 3}} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div style={{ backgroundColor: '#1e293b', padding: '1rem', borderRadius: '8px' }}>
-            <h4 style={{ color: '#e2e8f0', marginBottom: '1rem', textAlign: 'center' }}>VaR (95%) & Breach Count</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={snapshots}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="snapshot_date" stroke="#94a3b8" tick={{fontSize: 12}} />
-                <YAxis yAxisId="left" stroke="#8b5cf6" tick={{fontSize: 12}} />
-                <YAxis yAxisId="right" orientation="right" stroke="#ef4444" tick={{fontSize: 12}} />
-                <RechartsTooltip contentStyle={{backgroundColor: '#0f172a', borderColor: '#334155', color: '#f1f5f9'}} />
-                <Legend />
-                <Line yAxisId="left" type="monotone" dataKey="historical_var_95_1d" name="VaR 95%" stroke="#8b5cf6" strokeWidth={2} dot={{r: 3}} connectNulls />
-                <Line yAxisId="right" type="monotone" dataKey="open_breach_count" name="Open Breaches" stroke="#ef4444" strokeWidth={2} dot={{r: 3}} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          
+      {/* ── Model health strip ──────────────────────────────────── */}
+      {report?.model_governance && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
+          <StatusBadge label={`Risk Control: ${report.report_metadata?.overall_status || 'N/A'}`}
+            variant={report.report_metadata?.overall_status === 'BREACH' ? 'danger' : report.report_metadata?.overall_status === 'WARNING' ? 'warning' : 'ok'} />
+          <StatusBadge label={`Market Risk: ${report.market_risk?.model_status || 'N/A'}`}
+            variant={report.market_risk?.model_status === 'RATE_ONLY_MODEL' ? 'warning' : report.market_risk?.model_status === 'AVAILABLE' ? 'ok' : 'muted'} />
+          {report.model_governance.degraded_models?.map((m: string) => (
+            <StatusBadge key={m} label={`${m}: Degraded`} variant="warning" />
+          ))}
+          {report.model_governance.proxy_models?.map((m: string) => (
+            <StatusBadge key={m} label={`${m}: Proxy`} variant="info" />
+          ))}
         </div>
       )}
 
+      {report?.market_risk?.model_status === 'RATE_ONLY_MODEL' && (
+        <ModelStatusBanner
+          status="Rate-Only Model Active"
+          message="Credit spread history insufficient. VaR calculation excludes credit spread risk factors."
+        />
+      )}
+
+      {/* ── Mid-section: Stress + Liquidity + Governance ────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginBottom: '28px' }}>
+        {/* Stress Testing */}
+        <DataPanel title="Stress Testing">
+          {isReportLoading ? <LoadingState /> : !report?.stress_risk ? <EmptyState /> : (
+            <div>
+              <KVRow label="Worst Scenario" value={report.stress_risk.worst_scenario_name || 'N/A'} />
+              <KVRow label="Worst Loss" value={
+                report.stress_risk.pnl !== null
+                  ? <span style={{ color: 'var(--text-critical)' }}>-{fmtCurrency(Math.abs(Number(report.stress_risk.pnl)))}</span>
+                  : 'N/A'
+              } />
+            </div>
+          )}
+        </DataPanel>
+
+        {/* Liquidity */}
+        <DataPanel title="Liquidity Profile">
+          {isReportLoading ? <LoadingState /> : !report?.liquidity_risk ? <EmptyState /> : (
+            <div>
+              <KVRow label="Liquidity Score" value={
+                report.liquidity_risk.liquidity_score !== null
+                  ? `${fmtNum(report.liquidity_risk.liquidity_score)} / 100` : 'N/A'
+              } />
+              <KVRow label="Largest Concentration" value={
+                `${report.concentration?.largest_issuer || 'N/A'} (${fmtNum(Number(report.concentration?.largest_issuer_weight || 0) * 100, 1)}%)`
+              } />
+            </div>
+          )}
+        </DataPanel>
+
+        {/* Governance */}
+        <DataPanel title="Model Governance">
+          {isReportLoading ? <LoadingState /> : !report?.model_governance ? <EmptyState /> : (
+            <div>
+              <KVRow label="Market Risk Model" value={
+                <StatusBadge
+                  label={report.market_risk?.model_status || 'N/A'}
+                  variant={report.market_risk?.model_status === 'RATE_ONLY_MODEL' ? 'warning' : 'ok'}
+                />
+              } />
+              {report.model_governance.degraded_models?.map((m: string) => (
+                <KVRow key={m} label={m} value={<StatusBadge label="Degraded" variant="warning" />} />
+              ))}
+              {report.model_governance.proxy_models?.map((m: string) => (
+                <KVRow key={m} label={m} value={<StatusBadge label="Proxy" variant="info" />} />
+              ))}
+            </div>
+          )}
+        </DataPanel>
+      </div>
+
+      {/* ── Historical Trend Charts ─────────────────────────────── */}
+      <SectionHeader title="Historical Risk Trends" />
+
+      {isSnapshotsLoading ? <LoadingState message="Loading historical data..." /> : (!snapshots || snapshots.length <= 1) ? (
+        <DataPanel><EmptyState message="Historical trend data requires additional snapshots." /></DataPanel>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          {[
+            { key: 'total_market_value', title: 'Portfolio Market Value', color: CHART_COLORS.accent, fmt: (v: any) => `$${(v/1000000).toFixed(1)}M` },
+            { key: 'weighted_modified_duration', title: 'Modified Duration', color: CHART_COLORS.primary, fmt: undefined },
+            { key: 'total_dv01', title: 'Total DV01', color: CHART_COLORS.amber, fmt: undefined },
+          ].map(chart => (
+            <DataPanel key={chart.key} title={chart.title}>
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={snapshots}>
+                  <CartesianGrid {...RC_GRID_PROPS} />
+                  <XAxis dataKey="snapshot_date" {...RC_AXIS_STYLE} />
+                  <YAxis {...RC_AXIS_STYLE} tickFormatter={chart.fmt} />
+                  <RechartsTooltip {...RC_TOOLTIP_STYLE} />
+                  <Line type="monotone" dataKey={chart.key} stroke={chart.color} strokeWidth={2} dot={{ r: 2, fill: chart.color }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </DataPanel>
+          ))}
+
+          <DataPanel title="VaR (95%) & Breach Count">
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={snapshots}>
+                <CartesianGrid {...RC_GRID_PROPS} />
+                <XAxis dataKey="snapshot_date" {...RC_AXIS_STYLE} />
+                <YAxis yAxisId="left" {...RC_AXIS_STYLE} />
+                <YAxis yAxisId="right" orientation="right" {...RC_AXIS_STYLE} />
+                <RechartsTooltip {...RC_TOOLTIP_STYLE} />
+                <Legend {...RC_LEGEND_STYLE} />
+                <Line yAxisId="left" type="monotone" dataKey="historical_var_95_1d" name="VaR 95%" stroke={CHART_COLORS.purple} strokeWidth={2} dot={{ r: 2 }} connectNulls />
+                <Line yAxisId="right" type="monotone" dataKey="open_breach_count" name="Open Breaches" stroke={CHART_COLORS.red} strokeWidth={2} dot={{ r: 2 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </DataPanel>
+        </div>
+      )}
     </div>
   );
 };

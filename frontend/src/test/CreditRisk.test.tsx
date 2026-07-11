@@ -48,8 +48,8 @@ describe('CreditRisk Component', () => {
 
     renderWithProviders(<CreditRisk />);
 
-    expect(await screen.findByText('120 bps')).toBeInTheDocument();
-    expect(await screen.findByText('450 bps')).toBeInTheDocument();
+    expect(await screen.findByText('120')).toBeInTheDocument();
+    expect(await screen.findByText('450')).toBeInTheDocument();
   });
 
   it('Credit Risk - missing spread history state', async () => {

@@ -1,47 +1,53 @@
 import { useQuery } from '@tanstack/react-query';
 import { getSpreads, fetchPortfolioPositions } from '../api/client';
+import { usePortfolio } from '../auth/PortfolioContext';
 import Plot from 'react-plotly.js';
+import { PageHeader, MetricCard, DataPanel, SectionHeader, ModelStatusBanner, LoadingState, KVRow, EmptyState } from '../components/ui';
+import { plotLayout, PLOT_CONFIG, CHART_COLORS } from '../lib/plotlyTheme';
 
 export const CreditRisk = () => {
+  const { selectedPortfolioId: portfolioId } = usePortfolio();
+
   const { data: igSpreads, isLoading: isIgLoading } = useQuery({
     queryKey: ['spreads', 'BAMLC0A0CM'],
-    queryFn: () => getSpreads('BAMLC0A0CM')
+    queryFn: () => getSpreads('BAMLC0A0CM'),
   });
 
   const { data: hySpreads, isLoading: isHyLoading } = useQuery({
     queryKey: ['spreads', 'BAMLH0A0HYM2'],
-    queryFn: () => getSpreads('BAMLH0A0HYM2')
-  });
-  
-  const { data: positions, isLoading: isPosLoading } = useQuery({
-    queryKey: ['portfolioPositions', 1],
-    queryFn: () => fetchPortfolioPositions(1)
+    queryFn: () => getSpreads('BAMLH0A0HYM2'),
   });
 
-  if (isIgLoading || isHyLoading || isPosLoading) return <div style={{ color: '#94a3b8' }}>Loading Credit Risk...</div>;
+  const { data: positions, isLoading: isPosLoading } = useQuery({
+    queryKey: ['portfolioPositions', portfolioId],
+    queryFn: () => fetchPortfolioPositions(portfolioId!),
+    enabled: !!portfolioId,
+  });
+
+  if (!portfolioId) return <><PageHeader title="Credit Risk & Spreads" description="Systemic credit spreads, historical trends, and exposure distribution" /><EmptyState message="No portfolio selected." /></>;
+  if (isIgLoading || isHyLoading || isPosLoading) return <LoadingState message="Loading Credit Risk..." />;
 
   const hasIg = igSpreads && igSpreads.length > 0;
   const hasHy = hySpreads && hySpreads.length > 0;
-  
   const latestIg = hasIg ? igSpreads[0] : null;
   const latestHy = hasHy ? hySpreads[0] : null;
 
-  // Chart data
   const igTrace = hasIg ? {
     x: igSpreads.map((s: any) => s.observation_date),
     y: igSpreads.map((s: any) => s.spread_bps),
-    type: 'scatter', mode: 'lines', name: 'US Corp IG (OAS)', line: { color: '#38bdf8' }
+    type: 'scatter', mode: 'lines', name: 'US Corp IG (OAS)',
+    line: { color: CHART_COLORS.accent, width: 2 },
   } : null;
 
   const hyTrace = hasHy ? {
     x: hySpreads.map((s: any) => s.observation_date),
     y: hySpreads.map((s: any) => s.spread_bps),
-    type: 'scatter', mode: 'lines', name: 'US High Yield (OAS)', line: { color: '#ef4444' }
+    type: 'scatter', mode: 'lines', name: 'US High Yield (OAS)',
+    line: { color: CHART_COLORS.red, width: 2 },
   } : null;
 
   const chartData = [igTrace, hyTrace].filter(t => t !== null) as any[];
 
-  // Portfolio distribution
   let sectorDist: Record<string, number> = {};
   let ratingDist: Record<string, number> = {};
   let totalPosValue = 0;
@@ -50,87 +56,67 @@ export const CreditRisk = () => {
     positions.forEach((p: any) => {
       const val = Number(p.market_value) || 0;
       totalPosValue += val;
-      const sec = p.bond.sector || 'Unknown';
-      const rat = p.bond.credit_rating || 'NR';
-      sectorDist[sec] = (sectorDist[sec] || 0) + val;
-      ratingDist[rat] = (ratingDist[rat] || 0) + val;
+      sectorDist[p.bond.sector || 'Unknown'] = (sectorDist[p.bond.sector || 'Unknown'] || 0) + val;
+      ratingDist[p.bond.credit_rating || 'NR'] = (ratingDist[p.bond.credit_rating || 'NR'] || 0) + val;
     });
   }
 
   return (
     <div>
-      <h1 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#e2e8f0' }}>Credit Risk & Spreads</h1>
-      <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>FRED Market Spreads & Portfolio Exposure</p>
-      
-      <div style={{ backgroundColor: '#1e293b', padding: '1rem', borderRadius: '8px', border: '1px solid #334155', marginBottom: '2rem' }}>
-        <p style={{ margin: 0, color: '#eab308' }}>
-          <strong>Note:</strong> FRED spread data represents observed market indices. Bond ratings and sector exposures below reflect synthetic demonstration metadata and market risk model proxy mappings.
-        </p>
+      <PageHeader title="Credit Risk & Spreads" description="FRED market index spreads and portfolio credit exposure" />
+
+      <ModelStatusBanner
+        variant="info"
+        status="Data Source"
+        message="FRED spread data represents observed market indices. Bond ratings and sector exposures reflect synthetic demonstration metadata and proxy mappings."
+      />
+
+      {/* Spread cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+        <MetricCard
+          label="US Corporate IG OAS (BAMLC0A0CM)"
+          value={latestIg ? `${latestIg.spread_bps.toFixed(0)}` : 'N/A'}
+          unit="bps"
+          sub={latestIg ? `As of ${latestIg.observation_date}` : 'Missing spread history'}
+          danger={!latestIg}
+        />
+        <MetricCard
+          label="US High Yield OAS (BAMLH0A0HYM2)"
+          value={latestHy ? `${latestHy.spread_bps.toFixed(0)}` : 'N/A'}
+          unit="bps"
+          sub={latestHy ? `As of ${latestHy.observation_date}` : 'Missing spread history'}
+          danger={!latestHy}
+        />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: '#94a3b8' }}>US Corporate IG OAS (BAMLC0A0CM)</h3>
-          {latestIg ? (
-            <>
-              <div style={{ fontSize: '2rem', color: '#e2e8f0' }}>{latestIg.spread_bps.toFixed(0)} bps</div>
-              <div style={{ color: '#64748b' }}>As of {latestIg.observation_date}</div>
-            </>
-          ) : <div style={{ color: '#ef4444' }}>Missing spread history</div>}
-        </div>
-        
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: '#94a3b8' }}>US High Yield OAS (BAMLH0A0HYM2)</h3>
-          {latestHy ? (
-            <>
-              <div style={{ fontSize: '2rem', color: '#e2e8f0' }}>{latestHy.spread_bps.toFixed(0)} bps</div>
-              <div style={{ color: '#64748b' }}>As of {latestHy.observation_date}</div>
-            </>
-          ) : <div style={{ color: '#ef4444' }}>Missing spread history</div>}
-        </div>
-      </div>
-
+      {/* Chart */}
       {chartData.length > 0 && (
-        <div style={{ backgroundColor: '#1e293b', padding: '1rem', borderRadius: '8px', marginBottom: '2rem' }}>
+        <DataPanel title="Historical Credit Spreads" style={{ marginBottom: '20px' }}>
           <Plot
             data={chartData}
-            layout={{
-              title: 'Historical Credit Spreads (bps)',
-              xaxis: { title: 'Date', gridcolor: '#334155', zerolinecolor: '#334155' },
-              yaxis: { title: 'Spread (bps)', gridcolor: '#334155', zerolinecolor: '#334155' },
-              paper_bgcolor: 'transparent',
-              plot_bgcolor: 'transparent',
-              font: { color: '#e2e8f0' },
-              margin: { t: 40, r: 20, l: 40, b: 40 },
-              height: 350
-            }}
+            layout={plotLayout({
+              height: 340,
+              yaxis: { ...plotLayout().yaxis, title: { text: 'Spread (bps)', font: { size: 11, color: '#8fa3bf' } } },
+            })}
             style={{ width: '100%' }}
-            config={{ displayModeBar: false }}
+            config={PLOT_CONFIG}
           />
-        </div>
+        </DataPanel>
       )}
-      
-      <h2 style={{ color: '#e2e8f0', marginBottom: '1rem' }}>Portfolio Exposure</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: '#e2e8f0' }}>Sector Distribution</h3>
+
+      {/* Portfolio exposure */}
+      <SectionHeader title="Portfolio Exposure" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+        <DataPanel title="Sector Distribution">
           {Object.entries(sectorDist).map(([sec, val]) => (
-            <div key={sec} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span style={{ color: '#94a3b8' }}>{sec}</span>
-              <span style={{ color: '#e2e8f0' }}>{(val / totalPosValue * 100).toFixed(1)}%</span>
-            </div>
+            <KVRow key={sec} label={sec} value={`${(val / totalPosValue * 100).toFixed(1)}%`} />
           ))}
-        </div>
-        
-        <div style={{ backgroundColor: '#1e293b', padding: '1.5rem', borderRadius: '8px', border: '1px solid #334155' }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: '#e2e8f0' }}>Rating Distribution</h3>
+        </DataPanel>
+        <DataPanel title="Rating Distribution">
           {Object.entries(ratingDist).map(([rat, val]) => (
-            <div key={rat} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span style={{ color: '#94a3b8' }}>{rat}</span>
-              <span style={{ color: '#e2e8f0' }}>{(val / totalPosValue * 100).toFixed(1)}%</span>
-            </div>
+            <KVRow key={rat} label={rat} value={`${(val / totalPosValue * 100).toFixed(1)}%`} />
           ))}
-        </div>
+        </DataPanel>
       </div>
     </div>
   );

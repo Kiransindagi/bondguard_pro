@@ -122,20 +122,20 @@ def seed_limits(db=None):
             }
         ]
         
-        for l in limits:
-            existing = db.query(RiskLimit).filter(RiskLimit.code == l['code']).first()
+        for limit_dict in limits:
+            existing = db.query(RiskLimit).filter(RiskLimit.code == limit_dict['code']).first()
             if not existing:
                 lim = RiskLimit(
-                    code=l['code'],
-                    name=l['name'],
-                    description=l['description'],
-                    metric_type=l['metric_type'],
-                    scope_type=l['scope_type'],
-                    scope_value=l.get('scope_value'),
-                    direction=l['direction'],
-                    warning_threshold=l['warning_threshold'],
-                    limit_threshold=l['limit_threshold'],
-                    severity=l['severity'],
+                    code=limit_dict['code'],
+                    name=limit_dict['name'],
+                    description=limit_dict['description'],
+                    metric_type=limit_dict['metric_type'],
+                    scope_type=limit_dict['scope_type'],
+                    scope_value=limit_dict.get('scope_value'),
+                    direction=limit_dict['direction'],
+                    warning_threshold=limit_dict['warning_threshold'],
+                    limit_threshold=limit_dict['limit_threshold'],
+                    severity=limit_dict['severity'],
                     effective_from=date(2020, 1, 1),
                     is_active=True
                 )

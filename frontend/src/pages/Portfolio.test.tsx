@@ -3,11 +3,15 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Portfolio } from './Portfolio';
 import * as client from '../api/client';
+import { usePortfolio } from '../auth/PortfolioContext';
 
 vi.mock('../api/client', () => ({
-  fetchPortfolios: vi.fn(),
   fetchPortfolioSummary: vi.fn(),
   fetchPortfolioPositions: vi.fn(),
+}));
+
+vi.mock('../auth/PortfolioContext', () => ({
+  usePortfolio: vi.fn(),
 }));
 
 const queryClient = new QueryClient({
@@ -24,23 +28,26 @@ describe('Portfolio', () => {
     vi.clearAllMocks();
   });
 
-  it('shows loading state initially', () => {
-    (client.fetchPortfolios as any).mockImplementation(() => new Promise(() => {}));
-    renderWithClient(<Portfolio />);
-    expect(screen.getByText('Loading portfolios...')).toBeInTheDocument();
-  });
-
-  it('shows empty state when no portfolios', async () => {
-    (client.fetchPortfolios as any).mockResolvedValue([]);
-    renderWithClient(<Portfolio />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('No portfolios exist.')).toBeInTheDocument();
+  it('shows empty state when no portfolio selected', () => {
+    (usePortfolio as any).mockReturnValue({
+      selectedPortfolioId: null,
+      selectedPortfolio: null,
+      portfolios: null,
+      loading: false,
     });
+
+    renderWithClient(<Portfolio />);
+    expect(screen.getByText('No portfolio selected.')).toBeInTheDocument();
   });
 
   it('renders portfolio summary and positions', async () => {
-    (client.fetchPortfolios as any).mockResolvedValue([{ id: 1 }]);
+    (usePortfolio as any).mockReturnValue({
+      selectedPortfolioId: 1,
+      selectedPortfolio: { id: 1, name: 'Global Core', is_active: true, status: 'ACTIVE' },
+      portfolios: [{ id: 1, name: 'Global Core', is_active: true, status: 'ACTIVE' }],
+      loading: false,
+    });
+
     (client.fetchPortfolioSummary as any).mockResolvedValue({
       name: 'Global Core',
       total_market_value: 10000,
@@ -68,7 +75,13 @@ describe('Portfolio', () => {
   });
 
   it('handles API error state gracefully', async () => {
-    (client.fetchPortfolios as any).mockResolvedValue([{ id: 1 }]);
+    (usePortfolio as any).mockReturnValue({
+      selectedPortfolioId: 1,
+      selectedPortfolio: { id: 1, name: 'Global Core', is_active: true, status: 'ACTIVE' },
+      portfolios: [{ id: 1, name: 'Global Core', is_active: true, status: 'ACTIVE' }],
+      loading: false,
+    });
+
     (client.fetchPortfolioSummary as any).mockRejectedValue(new Error('API Error'));
     (client.fetchPortfolioPositions as any).mockRejectedValue(new Error('API Error'));
 

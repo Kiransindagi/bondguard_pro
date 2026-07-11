@@ -6,16 +6,24 @@ from .types import CashFlow
 from .exceptions import InvalidInputError
 
 def get_frequency_months(frequency: str) -> int:
-    if frequency == "annual": return 12
-    elif frequency == "semiannual": return 6
-    elif frequency == "quarterly": return 3
-    else: raise InvalidInputError(f"Unknown frequency: {frequency}")
+    if frequency == "annual":
+        return 12
+    elif frequency == "semiannual":
+        return 6
+    elif frequency == "quarterly":
+        return 3
+    else:
+        raise InvalidInputError(f"Unknown frequency: {frequency}")
 
 def get_periods_per_year(frequency: str) -> int:
-    if frequency == "annual": return 1
-    elif frequency == "semiannual": return 2
-    elif frequency == "quarterly": return 4
-    else: raise InvalidInputError(f"Unknown frequency: {frequency}")
+    if frequency == "annual":
+        return 1
+    elif frequency == "semiannual":
+        return 2
+    elif frequency == "quarterly":
+        return 4
+    else:
+        raise InvalidInputError(f"Unknown frequency: {frequency}")
 
 def days_between(d1: date, d2: date, convention: str) -> int:
     if convention == "ACT/ACT" or convention == "ACT/360":
@@ -23,8 +31,10 @@ def days_between(d1: date, d2: date, convention: str) -> int:
     elif convention == "30/360":
         d1_d = d1.day
         d2_d = d2.day
-        if d1_d == 31: d1_d = 30
-        if d2_d == 31 and d1_d == 30: d2_d = 30
+        if d1_d == 31:
+            d1_d = 30
+        if d2_d == 31 and d1_d == 30:
+            d2_d = 30
         return 360 * (d2.year - d1.year) + 30 * (d2.month - d1.month) + (d2_d - d1_d)
     else:
         raise InvalidInputError(f"Unknown day count convention: {convention}")
@@ -49,8 +59,10 @@ def generate_coupon_schedule(issue_date: date, maturity_date: date, frequency: s
 
 def calculate_accrued_interest(settlement_date: date, issue_date: date, maturity_date: date,
                                face_value: Decimal, coupon_rate: Decimal, frequency: str, convention: str) -> Decimal:
-    if settlement_date <= issue_date: return Decimal('0')
-    if settlement_date >= maturity_date: return Decimal('0')
+    if settlement_date <= issue_date:
+        return Decimal('0')
+    if settlement_date >= maturity_date:
+        return Decimal('0')
 
     schedule = generate_coupon_schedule(issue_date, maturity_date, frequency)
     prev_coupon_date = issue_date

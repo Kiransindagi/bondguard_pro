@@ -3,11 +3,15 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MarketRisk } from './MarketRisk';
 import * as client from '../api/client';
+import { usePortfolio } from '../auth/PortfolioContext';
 
 vi.mock('../api/client', () => ({
-  fetchPortfolios: vi.fn(),
   fetchPortfolioRiskSummary: vi.fn(),
   fetchPortfolioPositionsRisk: vi.fn(),
+}));
+
+vi.mock('../auth/PortfolioContext', () => ({
+  usePortfolio: vi.fn(),
 }));
 
 const queryClient = new QueryClient({
@@ -24,14 +28,26 @@ describe('MarketRisk', () => {
     vi.clearAllMocks();
   });
 
-  it('shows loading state initially', () => {
-    (client.fetchPortfolios as any).mockImplementation(() => new Promise(() => {}));
+  it('shows empty state when no portfolio selected', () => {
+    (usePortfolio as any).mockReturnValue({
+      selectedPortfolioId: null,
+      selectedPortfolio: null,
+      portfolios: null,
+      loading: false,
+    });
+
     renderWithClient(<MarketRisk />);
-    expect(screen.getByText('Loading portfolios...')).toBeInTheDocument();
+    expect(screen.getByText('No portfolio selected.')).toBeInTheDocument();
   });
 
   it('renders risk summary and positions', async () => {
-    (client.fetchPortfolios as any).mockResolvedValue([{ id: 1 }]);
+    (usePortfolio as any).mockReturnValue({
+      selectedPortfolioId: 1,
+      selectedPortfolio: { id: 1, name: 'Global Core', is_active: true, status: 'ACTIVE' },
+      portfolios: [{ id: 1, name: 'Global Core', is_active: true, status: 'ACTIVE' }],
+      loading: false,
+    });
+
     (client.fetchPortfolioRiskSummary as any).mockResolvedValue({
       valuation_date: '2024-01-01',
       total_market_value: 1000000,
@@ -54,18 +70,24 @@ describe('MarketRisk', () => {
     renderWithClient(<MarketRisk />);
     
     await waitFor(() => {
-      expect(screen.getByText('Valuation Date: 2024-01-01')).toBeInTheDocument();
+      expect(screen.getByText(/Valuation:\s*2024-01-01/i)).toBeInTheDocument();
     });
     
     expect(screen.getAllByText('$1,000,000')[0]).toBeInTheDocument();
     expect(screen.getAllByText('5.00%')[0]).toBeInTheDocument();
-    expect(screen.getByText('4.50 yrs')).toBeInTheDocument();
+    expect(screen.getAllByText('4.50')[0]).toBeInTheDocument();
     expect(screen.getAllByText('25.00')[0]).toBeInTheDocument();
     expect(screen.getAllByText('$500')[0]).toBeInTheDocument();
   });
 
   it('handles API error state gracefully', async () => {
-    (client.fetchPortfolios as any).mockResolvedValue([{ id: 1 }]);
+    (usePortfolio as any).mockReturnValue({
+      selectedPortfolioId: 1,
+      selectedPortfolio: { id: 1, name: 'Global Core', is_active: true, status: 'ACTIVE' },
+      portfolios: [{ id: 1, name: 'Global Core', is_active: true, status: 'ACTIVE' }],
+      loading: false,
+    });
+
     (client.fetchPortfolioRiskSummary as any).mockRejectedValue(new Error('API Error'));
     (client.fetchPortfolioPositionsRisk as any).mockRejectedValue(new Error('API Error'));
 

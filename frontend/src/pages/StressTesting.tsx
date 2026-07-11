@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { fetchScenarios, runStressTest, compareScenarios } from '../api/stressTesting';
 import type { StressScenario, StressRunResponse, StressComparisonResponse } from '../api/stressTesting';
-import { AlertCircle, Play, BarChart2 } from 'lucide-react';
+import { usePortfolio } from '../auth/PortfolioContext';
+import { PageHeader, MetricCard, DataPanel, SectionHeader, LoadingState, ErrorState, TablePanel, Th, Td, Btn, EmptyState } from '../components/ui';
 
 export const StressTesting: React.FC = () => {
   const [scenarios, setScenarios] = useState<StressScenario[]>([]);
@@ -10,199 +11,142 @@ export const StressTesting: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [runResult, setRunResult] = useState<StressRunResponse | null>(null);
   const [comparisonResult, setComparisonResult] = useState<StressComparisonResponse | null>(null);
-  
-  const portfolioId = 1;
+  const { selectedPortfolioId: portfolioId } = usePortfolio();
 
+  useEffect(() => { loadScenarios(); }, []);
   useEffect(() => {
-    loadScenarios();
-  }, []);
+    setRunResult(null);
+    setComparisonResult(null);
+  }, [portfolioId]);
 
   const loadScenarios = async () => {
-    try {
-      const data = await fetchScenarios();
-      setScenarios(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load scenarios');
-    }
+    try { setScenarios(await fetchScenarios()); }
+    catch (err: any) { setError(err.message || 'Failed to load scenarios'); }
   };
 
   const handleRunScenario = async () => {
     if (selectedScenarioId === '') return;
-    setLoading(true);
-    setError(null);
-    setComparisonResult(null);
-    try {
-      const res = await runStressTest(portfolioId, selectedScenarioId as number);
-      setRunResult(res);
-    } catch (err: any) {
-      setError(err.message || 'Failed to run scenario');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true); setError(null); setComparisonResult(null);
+    try { setRunResult(await runStressTest(portfolioId!, selectedScenarioId as number)); }
+    catch (err: any) { setError(err.message || 'Failed to run scenario'); }
+    finally { setLoading(false); }
   };
 
   const handleCompareAll = async () => {
-    setLoading(true);
-    setError(null);
-    setRunResult(null);
+    setLoading(true); setError(null); setRunResult(null);
     try {
-      const predefinedIds = scenarios.filter(s => s.is_predefined).map(s => s.id);
-      const idsToCompare = predefinedIds.slice(0, 5); 
-      const res = await compareScenarios(portfolioId, idsToCompare);
-      setComparisonResult(res);
-    } catch (err: any) {
-      setError(err.message || 'Failed to compare scenarios');
-    } finally {
-      setLoading(false);
-    }
+      const ids = scenarios.filter(s => s.is_predefined).map(s => s.id).slice(0, 5);
+      setComparisonResult(await compareScenarios(portfolioId!, ids));
+    } catch (err: any) { setError(err.message || 'Failed to compare scenarios'); }
+    finally { setLoading(false); }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-  };
+  const fmtCcy = (v: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
+  const fmtPct = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(2)}%`;
 
-  const formatPercent = (value: number) => {
-    return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
-  };
+  if (!portfolioId) {
+    return (
+      <div>
+        <PageHeader title="Stress Testing" description="Full-revaluation scenario analysis and portfolio impact" />
+        <EmptyState message="No portfolio selected. Please select a portfolio to run stress tests." />
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: '24px', color: '#f1f5f9' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <BarChart2 />
-        Stress Testing & Scenario Analysis
-      </h1>
-      
-      {error && (
-        <div style={{ padding: '16px', backgroundColor: '#7f1d1d', borderRadius: '8px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <AlertCircle size={20} />
-          {error}
-        </div>
-      )}
-      
-      <div style={{ backgroundColor: '#1e293b', padding: '24px', borderRadius: '8px', marginBottom: '24px', display: 'flex', gap: '16px', alignItems: 'center' }}>
-        <select 
-          value={selectedScenarioId} 
-          onChange={(e) => setSelectedScenarioId(Number(e.target.value))}
-          style={{ padding: '12px', borderRadius: '4px', backgroundColor: '#0f172a', color: '#f1f5f9', border: '1px solid #334155', flex: 1 }}
-        >
-          <option value="">Select Scenario</option>
-          {scenarios.map((scen) => (
-            <option key={scen.id} value={scen.id}>
-              {scen.name} - {scen.scenario_type.replace('_', ' ')}
-            </option>
-          ))}
-        </select>
-        
-        <button 
-          onClick={handleRunScenario} 
-          disabled={loading || selectedScenarioId === ''}
-          style={{ padding: '12px 24px', borderRadius: '4px', backgroundColor: '#2563eb', color: 'white', border: 'none', cursor: (loading || selectedScenarioId === '') ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-        >
-          <Play size={16} /> Run Scenario
-        </button>
-        
-        <button 
-          onClick={handleCompareAll} 
-          disabled={loading}
-          style={{ padding: '12px 24px', borderRadius: '4px', backgroundColor: 'transparent', color: '#38bdf8', border: '1px solid #38bdf8', cursor: loading ? 'not-allowed' : 'pointer' }}
-        >
-          Compare Top 5
-        </button>
-      </div>
-      
-      {loading && <div style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>Running calculations...</div>}
+    <div>
+      <PageHeader title="Stress Testing" description="Full-revaluation scenario analysis and portfolio impact" />
 
+      {error && <ErrorState message={error} />}
+
+      {/* Controls */}
+      <DataPanel style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <select
+            value={selectedScenarioId}
+            onChange={e => setSelectedScenarioId(Number(e.target.value))}
+            style={{
+              flex: 1, padding: '9px 14px', borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--bg-inset)', color: 'var(--text-primary)',
+              border: '1px solid var(--border-muted)', fontFamily: 'var(--font-sans)', fontSize: '12px',
+            }}
+          >
+            <option value="">Select Scenario</option>
+            {scenarios.map(s => (
+              <option key={s.id} value={s.id}>{s.name} - {s.scenario_type.replace('_', ' ')}</option>
+            ))}
+          </select>
+          <Btn variant="primary" onClick={handleRunScenario} disabled={loading || selectedScenarioId === ''}>Run Scenario</Btn>
+          <Btn variant="ghost" onClick={handleCompareAll} disabled={loading}>Compare Top 5</Btn>
+        </div>
+      </DataPanel>
+
+      {loading && <LoadingState message="Running calculations..." />}
+
+      {/* Single run result */}
       {runResult && (
-        <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-            <div style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '8px' }}>Total P&L</div>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: runResult.total_pnl < 0 ? '#ef4444' : '#22c55e' }}>
-                {formatCurrency(runResult.total_pnl)}
-              </div>
-            </div>
-            <div style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '8px' }}>Loss %</div>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: runResult.total_loss_percent < 0 ? '#ef4444' : '#22c55e' }}>
-                {formatPercent(runResult.total_loss_percent)}
-              </div>
-            </div>
-            <div style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '8px' }}>Base Market Value</div>
-              <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                {formatCurrency(runResult.base_market_value)}
-              </div>
-            </div>
-            <div style={{ backgroundColor: '#1e293b', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '8px' }}>Stressed Market Value</div>
-              <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                {formatCurrency(runResult.stressed_market_value)}
-              </div>
-            </div>
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+            <MetricCard label="Total P&L" value={fmtCcy(runResult.total_pnl)} danger={runResult.total_pnl < 0} accent={runResult.total_pnl >= 0} />
+            <MetricCard label="Loss %" value={fmtPct(runResult.total_loss_percent)} danger={runResult.total_loss_percent < 0} />
+            <MetricCard label="Base Market Value" value={fmtCcy(runResult.base_market_value)} />
+            <MetricCard label="Stressed Market Value" value={fmtCcy(runResult.stressed_market_value)} />
           </div>
-          
-          <div style={{ backgroundColor: '#1e293b', padding: '24px', borderRadius: '8px' }}>
-            <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Position Attribution</h2>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8' }}>
-                    <th style={{ padding: '12px' }}>Bond</th>
-                    <th style={{ padding: '12px' }}>Rating</th>
-                    <th style={{ padding: '12px' }}>Base Price</th>
-                    <th style={{ padding: '12px' }}>Stressed Price</th>
-                    <th style={{ padding: '12px' }}>Rate Shock (bps)</th>
-                    <th style={{ padding: '12px' }}>Spread Shock (bps)</th>
-                    <th style={{ padding: '12px' }}>PnL</th>
-                    <th style={{ padding: '12px' }}>Contrib %</th>
+
+          <SectionHeader title="Position Attribution" />
+          <DataPanel noPad>
+            <TablePanel>
+              <thead>
+                <tr>
+                  <Th>Bond</Th><Th>Rating</Th>
+                  <Th right>Base Price</Th><Th right>Stressed Price</Th>
+                  <Th right>Rate Shock (bps)</Th><Th right>Spread Shock (bps)</Th>
+                  <Th right>PnL</Th><Th right>Contrib %</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {runResult.positions.map(pos => (
+                  <tr key={pos.id}>
+                    <Td>{pos.bond_name}</Td>
+                    <Td>{pos.rating}</Td>
+                    <Td right mono>{pos.base_clean_price.toFixed(2)}</Td>
+                    <Td right mono>{pos.stressed_clean_price.toFixed(2)}</Td>
+                    <Td right mono>{pos.rate_shock_bps.toFixed(1)}</Td>
+                    <Td right mono>{pos.spread_shock_bps.toFixed(1)}</Td>
+                    <Td right mono style={{ color: pos.pnl < 0 ? 'var(--text-critical)' : 'var(--text-positive)' }}>{fmtCcy(pos.pnl)}</Td>
+                    <Td right mono>{pos.contribution_percent.toFixed(2)}%</Td>
                   </tr>
-                </thead>
-                <tbody>
-                  {runResult.positions.map(pos => (
-                    <tr key={pos.id} style={{ borderBottom: '1px solid #334155' }}>
-                      <td style={{ padding: '12px' }}>{pos.bond_name}</td>
-                      <td style={{ padding: '12px' }}>{pos.rating}</td>
-                      <td style={{ padding: '12px' }}>{pos.base_clean_price.toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>{pos.stressed_clean_price.toFixed(2)}</td>
-                      <td style={{ padding: '12px' }}>{pos.rate_shock_bps.toFixed(1)}</td>
-                      <td style={{ padding: '12px' }}>{pos.spread_shock_bps.toFixed(1)}</td>
-                      <td style={{ padding: '12px', color: pos.pnl < 0 ? '#ef4444' : '#22c55e' }}>{formatCurrency(pos.pnl)}</td>
-                      <td style={{ padding: '12px' }}>{pos.contribution_percent.toFixed(2)}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+                ))}
+              </tbody>
+            </TablePanel>
+          </DataPanel>
+        </>
       )}
 
+      {/* Comparison */}
       {comparisonResult && (
-        <div style={{ backgroundColor: '#1e293b', padding: '24px', borderRadius: '8px' }}>
-          <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>Scenario Comparison</h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <>
+          <SectionHeader title="Scenario Comparison" style={{ marginTop: '28px' }} />
+          <DataPanel noPad>
+            <TablePanel>
               <thead>
-                <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8' }}>
-                  <th style={{ padding: '12px' }}>Scenario</th>
-                  <th style={{ padding: '12px' }}>Total PnL</th>
-                  <th style={{ padding: '12px' }}>Loss %</th>
-                  <th style={{ padding: '12px' }}>Method</th>
+                <tr>
+                  <Th>Scenario</Th><Th right>Total PnL</Th><Th right>Loss %</Th><Th>Method</Th>
                 </tr>
               </thead>
               <tbody>
                 {comparisonResult.scenarios.map((scen, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #334155' }}>
-                    <td style={{ padding: '12px' }}>{scen.scenario_name}</td>
-                    <td style={{ padding: '12px', color: scen.total_pnl < 0 ? '#ef4444' : '#22c55e' }}>{formatCurrency(scen.total_pnl)}</td>
-                    <td style={{ padding: '12px', color: scen.total_loss_percent < 0 ? '#ef4444' : '#22c55e' }}>{formatPercent(scen.total_loss_percent)}</td>
-                    <td style={{ padding: '12px' }}>{scen.calculation_method}</td>
+                  <tr key={idx}>
+                    <Td>{scen.scenario_name}</Td>
+                    <Td right mono style={{ color: scen.total_pnl < 0 ? 'var(--text-critical)' : 'var(--text-positive)' }}>{fmtCcy(scen.total_pnl)}</Td>
+                    <Td right mono style={{ color: scen.total_loss_percent < 0 ? 'var(--text-critical)' : 'var(--text-positive)' }}>{fmtPct(scen.total_loss_percent)}</Td>
+                    <Td>{scen.calculation_method}</Td>
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
-        </div>
+            </TablePanel>
+          </DataPanel>
+        </>
       )}
     </div>
   );

@@ -7,20 +7,19 @@ from app.risk_control.types import NormalizedMetricResult
 class StressRiskAdapter:
     def get_value(self, metric: MetricType, portfolio_id: int, valuation_date: date, db: Session) -> NormalizedMetricResult:
         from app.risk_engine.stress_testing.portfolio_stress import compare_scenarios
-        from app.api.v1.risk import get_portfolio_positions_risk
         
         try:
             from app.db.models import StressScenario
-            predefined = db.query(StressScenario).filter(StressScenario.is_predefined == True).all()
+            predefined = db.query(StressScenario).filter(StressScenario.is_predefined.is_(True)).all()
             val = None
             
             if predefined:
-                position_risks = get_portfolio_positions_risk(portfolio_id, valuation_date, db)
-                comparison = compare_scenarios(db, portfolio_id, valuation_date, predefined, position_risks, "FULL_REVALUATION")
-                if comparison and comparison.get("scenarios"):
+                scenario_ids = [s.id for s in predefined]
+                comparison = compare_scenarios(db, portfolio_id, scenario_ids, valuation_date)
+                if comparison and comparison.scenarios:
                     if metric == MetricType.WORST_STRESS_LOSS:
-                        worst = comparison["scenarios"][0]
-                        total_pnl = worst.get("total_pnl", 0)
+                        worst = comparison.scenarios[0]
+                        total_pnl = worst.total_pnl
                         val = Decimal(abs(total_pnl)) if total_pnl < 0 else Decimal(0)
                         
             return NormalizedMetricResult(

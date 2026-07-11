@@ -4,10 +4,12 @@ from datetime import date
 from typing import List
 
 from app.db.database import get_db
-from app.db.models import Portfolio, RiskEvaluationRun, Breach, AuditEvent, RiskLimitResult
+from app.db.models import Portfolio, RiskEvaluationRun, Breach, AuditEvent, RiskLimitResult, RiskLimit
 from app.risk_control.evaluator import LimitEvaluator
 from app.risk_control.enums import BreachStatus
 from app.risk_control.audit_service import AuditService
+from app.schemas.risk_control import RiskLimitCreate, RiskLimitUpdate, RiskLimitResponse, RiskReportResponse
+from app.risk_control.reporting_service import ReportingService
 
 from app.auth.dependencies import PermissionChecker
 from app.auth.permissions import RISK_READ, RISK_EXECUTE, BREACH_ACKNOWLEDGE, LIMIT_MANAGE, REPORT_GENERATE, AUDIT_READ, BREACH_READ, BREACH_ASSIGN, BREACH_REVIEW, BREACH_RESOLVE
@@ -108,7 +110,7 @@ def acknowledge_breach(breach_id: int, note: str = Query(None), db: Session = De
         db=db,
         event_type=NotificationEventType.BREACH_ACKNOWLEDGED,
         severity=NotificationSeverity.INFO,
-        title=f"Breach Acknowledged",
+        title="Breach Acknowledged",
         message=f"Breach for limit {breach.risk_limit_id} acknowledged by user. Note: {note}",
         entity_type="BREACH",
         entity_id=breach.id
@@ -125,16 +127,15 @@ def get_audit_events(entity_type: str = None, entity_id: int = None, limit: int 
         query = query.filter(AuditEvent.entity_id == entity_id)
         
     return query.order_by(AuditEvent.id.desc()).limit(limit).all()
-from app.schemas.risk_control import RiskLimitCreate, RiskLimitUpdate, RiskLimitResponse, RiskReportResponse
-from app.db.models import RiskLimit
-from app.risk_control.reporting_service import ReportingService
 
 @router.get("/limits", response_model=List[RiskLimitResponse], dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_limits(db: Session = Depends(get_db)):
+    from app.db.models import RiskLimit
     return db.query(RiskLimit).all()
 
 @router.get("/limits/{limit_id}", response_model=RiskLimitResponse, dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_limit(limit_id: int, db: Session = Depends(get_db)):
+    from app.db.models import RiskLimit
     limit = db.query(RiskLimit).filter(RiskLimit.id == limit_id).first()
     if not limit:
         raise HTTPException(status_code=404, detail="Limit not found")
@@ -142,11 +143,13 @@ def get_limit(limit_id: int, db: Session = Depends(get_db)):
 
 @router.post("/limits", response_model=RiskLimitResponse, dependencies=[Depends(PermissionChecker(LIMIT_MANAGE))])
 def create_limit(limit_in: RiskLimitCreate, db: Session = Depends(get_db)):
+    from app.db.models import RiskLimit
+    from app.risk_control.reporting_service import ReportingService  # noqa: F401
     existing = db.query(RiskLimit).filter(
         RiskLimit.metric_type == limit_in.metric_type,
         RiskLimit.scope_type == limit_in.scope_type,
         RiskLimit.scope_value == limit_in.scope_value,
-        RiskLimit.is_active == True
+        RiskLimit.is_active.is_(True)
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="Duplicate active limit for this metric and scope exists")
@@ -312,7 +315,7 @@ def resolve_breach(breach_id: int, notes: str = Query(None), db: Session = Depen
         db=db,
         event_type=NotificationEventType.BREACH_RESOLVED,
         severity=NotificationSeverity.INFO,
-        title=f"Breach Resolved",
+        title="Breach Resolved",
         message=f"Breach for limit {breach.risk_limit_id} resolved by user. Note: {notes}",
         entity_type="BREACH",
         entity_id=breach.id
@@ -324,5 +327,5 @@ def resolve_breach(breach_id: int, notes: str = Query(None), db: Session = Depen
 @router.get("/assignable-users", dependencies=[Depends(PermissionChecker(BREACH_READ))])
 def get_assignable_users(db: Session = Depends(get_db)):
     from app.db.models import User
-    users = db.query(User).filter(User.is_active == True).all()
+    users = db.query(User).filter(User.is_active.is_(True)).all()
     return [{"id": u.id, "username": u.username, "roles": [r.name for r in u.roles]} for u in users]

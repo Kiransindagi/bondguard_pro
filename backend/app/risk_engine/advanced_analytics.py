@@ -1,14 +1,11 @@
 from decimal import Decimal
-from datetime import date, timedelta
-from typing import Dict, List, Any, Tuple
+from datetime import date
+from typing import Dict
 from sqlalchemy.orm import Session
-import math
 
-from app.db.models import Bond, Position, Portfolio
-from app.risk_engine.types import BondRiskInput, BondRiskResult
+from app.db.models import Bond
+from app.risk_engine.types import BondRiskInput
 from app.risk_engine.position_risk import calculate_position_risk
-from app.risk_engine.cashflows import generate_remaining_cashflows, calculate_accrued_interest
-from app.risk_engine.valuation import clean_price_from_ytm
 from app.risk_engine.curve import YieldCurve
 
 TENOR_NODES = {

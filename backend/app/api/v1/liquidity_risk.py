@@ -147,11 +147,16 @@ def get_portfolio_concentration(portfolio_id: int, dimension: str = "issuer", db
             d_val = bond.bond_type
         elif dimension == 'maturity':
             days = (bond.maturity_date - date.today()).days
-            if days <= 2*365: d_val = '0_TO_2Y'
-            elif days <= 5*365: d_val = '2_TO_5Y'
-            elif days <= 10*365: d_val = '5_TO_10Y'
-            elif days <= 20*365: d_val = '10_TO_20Y'
-            else: d_val = 'OVER_20Y'
+            if days <= 2*365:
+                d_val = '0_TO_2Y'
+            elif days <= 5*365:
+                d_val = '2_TO_5Y'
+            elif days <= 10*365:
+                d_val = '5_TO_10Y'
+            elif days <= 20*365:
+                d_val = '10_TO_20Y'
+            else:
+                d_val = 'OVER_20Y'
             
         data.append({
             'market_value': float(p.market_value),
@@ -246,8 +251,8 @@ def create_liquidity_snapshot(portfolio_id: int, assumption_id: int = None, db: 
 @router.get("/portfolios/{portfolio_id}/limits", response_model=List[LimitUtilizationResponse], dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_portfolio_limits(portfolio_id: int, db: Session = Depends(get_db)):
     limits = db.query(ConcentrationLimit).filter(
-        (ConcentrationLimit.portfolio_id == portfolio_id) | (ConcentrationLimit.portfolio_id == None),
-        ConcentrationLimit.is_active == True
+        (ConcentrationLimit.portfolio_id == portfolio_id) | (ConcentrationLimit.portfolio_id.is_(None)),
+        ConcentrationLimit.is_active.is_(True)
     ).all()
     
     # We would evaluate actual values here. For demonstration, we just return dummy actual values.
@@ -271,9 +276,12 @@ def stress_liquidity(portfolio_id: int, request: LiquidityStressRequest, db: Ses
     # In a full implementation, this would recalculate position_liquidity for each position with the requested scenario.
     # For now, we will return a mocked response based on the scenario type.
     mult = 1.0
-    if request.scenario == StressScenarioType.MODERATE: mult = 1.5
-    elif request.scenario == StressScenarioType.SEVERE: mult = 2.5
-    elif request.scenario == StressScenarioType.CREDIT_MARKET_FREEZE: mult = 4.0
+    if request.scenario == StressScenarioType.MODERATE:
+        mult = 1.5
+    elif request.scenario == StressScenarioType.SEVERE:
+        mult = 2.5
+    elif request.scenario == StressScenarioType.CREDIT_MARKET_FREEZE:
+        mult = 4.0
     
     normal_cost = float(snapshot.estimated_liquidation_cost)
     stressed_cost = normal_cost * mult

@@ -1,0 +1,114 @@
+﻿app\api\v1\data_pipeline.py:30:1: E402 Module level import not at top of file
+app\api\v1\liquidity_risk.py:150:29: E701 Multiple statements on one line (colon)
+app\api\v1\liquidity_risk.py:151:31: E701 Multiple statements on one line (colon)
+app\api\v1\liquidity_risk.py:152:32: E701 Multiple statements on one line (colon)
+app\api\v1\liquidity_risk.py:153:32: E701 Multiple statements on one line (colon)
+app\api\v1\liquidity_risk.py:154:17: E701 Multiple statements on one line (colon)
+app\api\v1\liquidity_risk.py:249:97: E711 Comparison to `None` should be `cond is None`
+app\api\v1\liquidity_risk.py:250:9: E712 Avoid equality comparisons to `True`; use `ConcentrationLimit.is_active:` for truth checks
+app\api\v1\liquidity_risk.py:274:55: E701 Multiple statements on one line (colon)
+app\api\v1\liquidity_risk.py:275:55: E701 Multiple statements on one line (colon)
+app\api\v1\liquidity_risk.py:276:69: E701 Multiple statements on one line (colon)
+app\api\v1\risk.py:177:5: F841 Local variable `curve` is assigned to but never used
+app\api\v1\risk_control.py:128:1: E402 Module level import not at top of file
+app\api\v1\risk_control.py:129:1: E402 Module level import not at top of file
+app\api\v1\risk_control.py:130:1: E402 Module level import not at top of file
+app\api\v1\risk_control.py:149:9: E712 Avoid equality comparisons to `True`; use `RiskLimit.is_active:` for truth checks
+app\api\v1\risk_control.py:327:35: E712 Avoid equality comparisons to `True`; use `User.is_active:` for truth checks
+app\api\v1\scenario_lab.py:99:63: E712 Avoid equality comparisons to `True`; use `SavedScenario.is_public:` for truth checks
+app\main.py:63:1: E402 Module level import not at top of file
+app\notifications\__init__.py:1:37: F401 `app.notifications.types.NotificationEventType` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\notifications\__init__.py:1:60: F401 `app.notifications.types.NotificationSeverity` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\notifications\__init__.py:1:82: F401 `app.notifications.types.NotificationCreate` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\notifications\__init__.py:2:39: F401 `app.notifications.service.NotificationService` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\notifications\__init__.py:3:42: F401 `app.notifications.dispatcher.NotificationDispatcher` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\notifications\channels\__init__.py:1:20: F401 `typing.Dict` imported but unused
+app\notifications\dispatcher.py:45:13: E712 Avoid equality comparisons to `True`; use `User.is_active:` for truth checks
+app\notifications\service.py:38:13: E712 Avoid equality comparisons to `False`; use `not InAppNotification.is_read:` for false checks
+app\notifications\service.py:57:13: E712 Avoid equality comparisons to `False`; use `not InAppNotification.is_read:` for false checks
+app\risk_control\__init__.py:2:5: F401 `app.risk_control.enums.MetricType` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_control\__init__.py:3:5: F401 `app.risk_control.enums.ScopeType` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_control\__init__.py:4:5: F401 `app.risk_control.enums.LimitDirection` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_control\__init__.py:5:5: F401 `app.risk_control.enums.LimitSeverity` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_control\__init__.py:6:5: F401 `app.risk_control.enums.ResultStatus` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_control\__init__.py:7:5: F401 `app.risk_control.enums.BreachStatus` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_control\__init__.py:8:5: F401 `app.risk_control.enums.EvaluationOverallStatus` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_control\__init__.py:10:36: F401 `app.risk_control.types.NormalizedMetricResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_control\adapters\stress_risk.py:14:58: E712 Avoid equality comparisons to `True`; use `StressScenario.is_predefined:` for truth checks
+app\risk_control\limit_resolver.py:12:13: E712 Avoid equality comparisons to `True`; use `RiskLimit.is_active:` for truth checks
+app\risk_control\limit_resolver.py:14:43: E711 Comparison to `None` should be `cond is None`
+app\risk_control\reporting_service.py:8:1: E402 Module level import not at top of file
+app\risk_control\reporting_service.py:9:1: E402 Module level import not at top of file
+app\risk_control\reporting_service.py:14:1: E402 Module level import not at top of file
+app\risk_control\reporting_service.py:15:1: E402 Module level import not at top of file
+app\risk_control\reporting_service.py:40:35: E741 Ambiguous variable name: `l`
+app\risk_control\reporting_service.py:43:9: F841 Local variable `results_map` is assigned to but never used
+app\risk_control\reporting_service.py:103:58: E712 Avoid equality comparisons to `True`; use `StressScenario.is_predefined:` for truth checks
+app\risk_control\reporting_service.py:235:31: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:9:29: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:10:35: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:11:34: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:12:9: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:15:29: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:16:35: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:17:34: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:18:9: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:26:22: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:27:37: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:52:37: E701 Multiple statements on one line (colon)
+app\risk_engine\cashflows.py:53:40: E701 Multiple statements on one line (colon)
+app\risk_engine\market_risk\__init__.py:1:27: F401 `.availability.check_model_availability` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:1:53: F401 `.availability.ModelStatus` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:1:66: F401 `.availability.ModelAvailabilityResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:2:29: F401 `.factor_mapping.FactorMappingService` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:3:27: F401 `.scenario_pnl.ScenarioPnlMatrix` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:4:29: F401 `.historical_var.calculate_historical_var` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:4:55: F401 `.historical_var.calculate_expected_shortfall` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:5:29: F401 `.parametric_var.calculate_parametric_var` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:6:25: F401 `.covariance.calculate_covariance_matrix` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:6:54: F401 `.covariance.calculate_correlation_matrix` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:7:32: F401 `.risk_contribution.calculate_component_var` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:7:57: F401 `.risk_contribution.calculate_marginal_var` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:8:33: F401 `.rolling_volatility.calculate_rolling_volatility` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\__init__.py:9:26: F401 `.backtesting.calculate_backtest` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\market_risk\availability.py:26:1: E402 Module level import not at top of file
+app\risk_engine\market_risk\risk_contribution.py:17:5: F841 Local variable `marginal_var` is assigned to but never used
+app\risk_engine\stress_testing\__init__.py:2:5: F401 `.types.CalculationMethod` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:3:5: F401 `.types.ScenarioType` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:4:5: F401 `.types.StressScenarioCreate` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:5:5: F401 `.types.StressScenarioUpdate` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:6:5: F401 `.types.StressScenarioResponse` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:7:5: F401 `.types.StressRunRequest` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:8:5: F401 `.types.StressPositionResultResponse` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:9:5: F401 `.types.StressRunResponse` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:10:5: F401 `.types.StressComparisonRequest` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:11:5: F401 `.types.PortfolioStressSummaryResponse` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:12:5: F401 `.types.StressComparisonResponse` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:16:5: F401 `.exceptions.StressTestingError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:17:5: F401 `.exceptions.ScenarioNotFoundError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:18:5: F401 `.exceptions.InvalidScenarioDefinitionError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:19:5: F401 `.exceptions.StressCalculationError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:22:30: F401 `.scenario_runner.run_portfolio_stress_test` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:23:31: F401 `.portfolio_stress.summarize_run` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\risk_engine\stress_testing\__init__.py:23:46: F401 `.portfolio_stress.compare_scenarios` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\scenario_lab\__init__.py:1:40: F401 `app.scenario_lab.validator.ScenarioValidator` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\scenario_lab\__init__.py:2:48: F401 `app.scenario_lab.execution_service.ScenarioExecutionService` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+app\services\bond_pricing.py:7:29: E701 Multiple statements on one line (colon)
+app\services\bond_pricing.py:8:35: E701 Multiple statements on one line (colon)
+app\services\bond_pricing.py:9:34: E701 Multiple statements on one line (colon)
+app\services\bond_pricing.py:10:9: E701 Multiple statements on one line (colon)
+app\services\bond_pricing.py:41:22: E701 Multiple statements on one line (colon)
+app\services\bond_pricing.py:42:37: E701 Multiple statements on one line (colon)
+app\services\bond_pricing.py:59:37: E701 Multiple statements on one line (colon)
+app\services\bond_pricing.py:60:39: E701 Multiple statements on one line (colon)
+app\services\bond_pricing.py:76:33: E701 Multiple statements on one line (colon)
+app\services\liquidity_snapshot.py:25:59: E712 Avoid equality comparisons to `True`; use `LiquidityAssumption.is_active:` for truth checks
+scripts\seed\seed_concentration_limits.py:19:13: E741 Ambiguous variable name: `l`
+scripts\seed\seed_concentration_limits.py:22:52: E711 Comparison to `None` should be `cond is None`
+scripts\seed\seed_risk_limits.py:125:13: E741 Ambiguous variable name: `l`
+tests\test_risk_control_lifecycle.py:72:5: F841 Local variable `run1` is assigned to but never used
+tests\test_risk_control_lifecycle.py:92:5: F841 Local variable `run3` is assigned to but never used
+tests\test_risk_control_lifecycle.py:98:5: F841 Local variable `run4` is assigned to but never used
+tests\test_risk_control_lifecycle.py:104:5: F841 Local variable `run5` is assigned to but never used
+Found 112 errors.
+No fixes available (21 hidden fixes can be enabled with the `--unsafe-fixes` option).

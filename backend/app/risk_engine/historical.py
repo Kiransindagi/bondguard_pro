@@ -85,7 +85,6 @@ class FactorAlignmentService:
         """
         # Quality Gate Checks
         from app.data_quality.engine import DataQualityEngine
-        from app.risk_engine.exceptions import RiskEngineError
 
         # 1. Gating Treasury rates
         for rate_key in ["DGS2", "DGS5", "DGS10", "DGS30"]:

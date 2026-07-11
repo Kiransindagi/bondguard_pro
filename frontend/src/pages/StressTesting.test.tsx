@@ -3,8 +3,13 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { StressTesting } from './StressTesting';
 import { fetchScenarios, runStressTest, compareScenarios } from '../api/stressTesting';
+import { usePortfolio } from '../auth/PortfolioContext';
 
 vi.mock('../api/stressTesting');
+
+vi.mock('../auth/PortfolioContext', () => ({
+  usePortfolio: vi.fn(),
+}));
 
 const mockScenarios = [
   {
@@ -71,9 +76,28 @@ describe('StressTesting Component', () => {
     (compareScenarios as any).mockResolvedValue(mockComparisonResult);
   });
 
-  it('renders correctly and loads scenarios', async () => {
+  it('shows empty state when no portfolio selected', () => {
+    (usePortfolio as any).mockReturnValue({
+      selectedPortfolioId: null,
+      selectedPortfolio: null,
+      portfolios: null,
+      loading: false,
+    });
+
     render(<StressTesting />);
-    expect(screen.getByText(/Stress Testing & Scenario Analysis/i)).toBeInTheDocument();
+    expect(screen.getByText('No portfolio selected. Please select a portfolio to run stress tests.')).toBeInTheDocument();
+  });
+
+  it('renders correctly and loads scenarios', async () => {
+    (usePortfolio as any).mockReturnValue({
+      selectedPortfolioId: 1,
+      selectedPortfolio: { id: 1, name: 'Global Core', is_active: true, status: 'ACTIVE' },
+      portfolios: [{ id: 1, name: 'Global Core', is_active: true, status: 'ACTIVE' }],
+      loading: false,
+    });
+
+    render(<StressTesting />);
+    expect(screen.getByText('Stress Testing')).toBeInTheDocument();
     
     await waitFor(() => {
       expect(fetchScenarios).toHaveBeenCalled();

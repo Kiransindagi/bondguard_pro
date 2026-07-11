@@ -8,6 +8,8 @@ class PortfolioBase(BaseModel):
     description: Optional[str] = None
     base_currency: str = "USD"
     benchmark: Optional[str] = None
+    is_active: bool = True
+    status: str = "ACTIVE"
 
 class PortfolioCreate(PortfolioBase):
     pass
@@ -17,6 +19,8 @@ class PortfolioUpdate(BaseModel):
     description: Optional[str] = None
     base_currency: Optional[str] = None
     benchmark: Optional[str] = None
+    is_active: Optional[bool] = None
+    status: Optional[str] = None
 
 class PortfolioResponse(PortfolioBase):
     id: int

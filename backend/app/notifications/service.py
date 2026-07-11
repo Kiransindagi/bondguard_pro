@@ -1,9 +1,8 @@
 from sqlalchemy.orm import Session
-from datetime import datetime
 from typing import List, Optional
 import logging
 
-from app.db.models import InAppNotification, User, Role
+from app.db.models import InAppNotification
 from app.notifications.types import NotificationCreate, NotificationEventType, NotificationSeverity
 
 logger = logging.getLogger(__name__)
@@ -36,7 +35,7 @@ class NotificationService:
     def get_unread_count(db: Session, user_id: int) -> int:
         return db.query(InAppNotification).filter(
             InAppNotification.user_id == user_id,
-            InAppNotification.is_read == False
+            InAppNotification.is_read.is_(False)
         ).count()
 
     @staticmethod
@@ -55,7 +54,7 @@ class NotificationService:
     def mark_all_as_read(db: Session, user_id: int) -> int:
         unread = db.query(InAppNotification).filter(
             InAppNotification.user_id == user_id,
-            InAppNotification.is_read == False
+            InAppNotification.is_read.is_(False)
         ).all()
         for notif in unread:
             notif.is_read = True

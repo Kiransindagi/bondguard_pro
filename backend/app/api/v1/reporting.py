@@ -21,9 +21,23 @@ def generate_snapshot(portfolio_id: int, valuation_date: date = None, db: Sessio
         valuation_date = date.today()
     try:
         snapshot = SnapshotService.generate_snapshot(db, portfolio_id, valuation_date)
-        return {"status": "success", "snapshot_id": snapshot.id}
+        return {
+            "status": "success",
+            "snapshot_id": snapshot.id,
+            "portfolio_id": snapshot.portfolio_id,
+            "snapshot_date": str(snapshot.snapshot_date),
+            "total_market_value": float(snapshot.total_market_value) if snapshot.total_market_value is not None else None,
+            "total_unrealized_pnl": float(snapshot.total_unrealized_pnl) if snapshot.total_unrealized_pnl is not None else None,
+            "weighted_modified_duration": float(snapshot.weighted_modified_duration) if snapshot.weighted_modified_duration is not None else None,
+            "portfolio_dv01": float(snapshot.total_dv01) if snapshot.total_dv01 is not None else None,
+            "overall_limit_status": snapshot.overall_limit_status,
+            "active_breach_count": (snapshot.open_breach_count or 0) + (snapshot.acknowledged_breach_count or 0),
+            "historical_var_95": float(snapshot.historical_var_95_1d) if snapshot.historical_var_95_1d is not None else None,
+            "largest_issuer_concentration": float(snapshot.largest_issuer_concentration) if snapshot.largest_issuer_concentration is not None else None,
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.get("/portfolios/{portfolio_id}/snapshots", dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 def get_snapshots(

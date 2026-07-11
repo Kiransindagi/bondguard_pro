@@ -5,6 +5,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import pandas as pd
 
+from app.risk_engine.historical import FactorAlignmentService
+
 class ModelStatus(str, Enum):
     FULL_FACTOR_MODEL = "FULL_FACTOR_MODEL"
     RATE_ONLY_MODEL = "RATE_ONLY_MODEL"
@@ -23,7 +25,7 @@ class ModelAvailabilityResult(BaseModel):
     excluded_factors: List[str]
     limitations: str
 
-from app.risk_engine.historical import FactorAlignmentService
+
 
 def check_model_availability(db: Session, min_required: int = 252) -> ModelAvailabilityResult:
     from app.data_quality.engine import DataQualityEngine

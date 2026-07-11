@@ -1,7 +1,7 @@
 import logging
 import time
 from datetime import date, datetime, timedelta, timezone
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.core.observability import log_duration

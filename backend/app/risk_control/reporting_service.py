@@ -1,9 +1,8 @@
 import logging
-from sqlalchemy.orm import Session
 from datetime import datetime
 from decimal import Decimal
 
-logger = logging.getLogger(__name__)
+from sqlalchemy.orm import Session
 
 from app.db.models import Portfolio, RiskEvaluationRun, RiskLimitResult, Breach, RiskLimit
 from app.schemas.risk_control import (
@@ -13,6 +12,8 @@ from app.schemas.risk_control import (
 )
 from app.risk_control.metric_registry import registry
 from app.risk_control.enums import MetricType
+
+logger = logging.getLogger(__name__)
 
 class ReportingService:
     @staticmethod
@@ -37,10 +38,7 @@ class ReportingService:
         
         limit_ids = [r.risk_limit_id for r in limit_results]
         limits = db.query(RiskLimit).filter(RiskLimit.id.in_(limit_ids)).all()
-        limits_map = {l.id: l for l in limits}
-        
-        # We need to map metric types to their results to populate the specific sections
-        results_map = {limits_map[r.risk_limit_id].metric_type: r for r in limit_results if r.risk_limit_id in limits_map}
+        limits_map = {limit_obj.id: limit_obj for limit_obj in limits}
         
         # To get the limitations and model statuses properly, we need to ask the adapters again
         # or we could have stored them in RiskLimitResult. Since we didn't store all of them,
@@ -94,21 +92,19 @@ class ReportingService:
             limitations=mr_limitations
         )
         
-        # Stress Risk Section
-        from app.api.v1.risk import get_portfolio_positions_risk
         from app.risk_engine.stress_testing.portfolio_stress import compare_scenarios
         from app.db.models import StressScenario
         worst_name, worst_code, worst_pnl, worst_pct = None, None, None, None
         try:
-            predefined = db.query(StressScenario).filter(StressScenario.is_predefined == True).all()
+            predefined = db.query(StressScenario).filter(StressScenario.is_predefined.is_(True)).all()
             if predefined:
-                pos_risks = get_portfolio_positions_risk(portfolio_id, run.valuation_date, db)
-                comp = compare_scenarios(db, portfolio_id, run.valuation_date, predefined, pos_risks, "FULL_REVALUATION")
-                if comp and comp.get("scenarios"):
-                    w = comp["scenarios"][0]
-                    worst_name = w.get("scenario_name")
-                    worst_code = w.get("scenario_name")  # code not in dict usually
-                    worst_pnl = Decimal(w.get("total_pnl", 0))
+                scenario_ids = [s.id for s in predefined]
+                comp = compare_scenarios(db, portfolio_id, scenario_ids, run.valuation_date)
+                if comp and comp.scenarios:
+                    w = comp.scenarios[0]
+                    worst_name = w.scenario_name
+                    worst_code = w.scenario_name
+                    worst_pnl = Decimal(str(w.total_pnl))
                     mv = portfolio_risk.total_market_value
                     worst_pct = (worst_pnl / mv * 100) if mv and mv > 0 else Decimal(0)
         except Exception:
@@ -232,7 +228,8 @@ class ReportingService:
         for b in all_breaches:
             if b.status in ("OPEN", "ACKNOWLEDGED"):
                 b_limit = db.query(RiskLimit).filter(RiskLimit.id == b.risk_limit_id).first()
-                if not b_limit: continue
+                if not b_limit:
+                    continue
                 active_breach_items.append(ActiveBreachItem(
                     breach_id=b.id,
                     limit_code=b_limit.code,

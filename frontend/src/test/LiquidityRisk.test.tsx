@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LiquidityRisk } from '../pages/LiquidityRisk';
 import { apiClient } from '../api/client';
 
@@ -26,7 +26,8 @@ const mockSummary = {
 };
 
 describe('LiquidityRisk Page', () => {
-  it('renders loading state then summary data', async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
     (apiClient.get as any).mockImplementation((url: string) => {
       if (url.includes('/summary')) return Promise.resolve({ data: mockSummary });
       if (url.includes('/positions')) return Promise.resolve({ data: [] });
@@ -35,7 +36,9 @@ describe('LiquidityRisk Page', () => {
       if (url.includes('/concentration')) return Promise.resolve({ data: { breakdown: [] } });
       return Promise.resolve({ data: {} });
     });
+  });
 
+  it('renders loading state then summary data', async () => {
     render(<LiquidityRisk />);
     
     await waitFor(() => {

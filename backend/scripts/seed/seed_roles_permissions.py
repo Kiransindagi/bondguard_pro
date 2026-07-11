@@ -1,5 +1,4 @@
 import os
-import sys
 import logging
 from app.db.database import SessionLocal
 from app.db.models import User, Role, Permission

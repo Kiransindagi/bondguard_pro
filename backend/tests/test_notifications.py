@@ -1,9 +1,8 @@
-import pytest
 from datetime import date
 from decimal import Decimal
 from sqlalchemy.orm import Session
 
-from app.db.models import Bond, User, Role, InAppNotification
+from app.db.models import User, Role, InAppNotification
 from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
 from app.notifications.service import NotificationService
 from app.notifications.types import NotificationCreate

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import date
-from typing import List, Optional
+from typing import Optional
 from decimal import Decimal
 
 from app.db.database import get_db
-from app.db.models import Bond, Position, Portfolio
+from app.db.models import Bond, Portfolio
 from app.auth.dependencies import PermissionChecker
 from app.auth.permissions import RISK_READ
 from app.risk_engine.advanced_analytics import AdvancedAnalyticsCalculator, CarryRollDownCalculator, PnLExplainCalculator

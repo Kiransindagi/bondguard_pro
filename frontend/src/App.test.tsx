@@ -9,7 +9,7 @@ vi.mock('react-plotly.js', () => ({
 describe('App', () => {
   it('renders without crashing', () => {
     render(<App />);
-    expect(screen.getByText('BondGuard Pro')).toBeInTheDocument();
+    expect(screen.getByText(/BondGuard/i)).toBeInTheDocument();
     // 'Dashboard Overview' might be async loaded depending on the route, 
     // but the app should render the header/sidebar immediately.
   });

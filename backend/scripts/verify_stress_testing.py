@@ -1,7 +1,4 @@
 import httpx
-import json
-from decimal import Decimal
-import os
 
 API_URL = "http://localhost:8000/api/v1"
 client = httpx.Client(base_url=API_URL, timeout=10.0)

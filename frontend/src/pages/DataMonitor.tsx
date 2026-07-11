@@ -1,62 +1,35 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchDataStatus } from '../api/client';
+import { PageHeader, DataPanel, LoadingState, ErrorState, EmptyState, KVRow, StatusBadge, Btn } from '../components/ui';
 
 export const DataMonitor = () => {
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['dataStatus'],
-    queryFn: fetchDataStatus,
-  });
+  const { data, isLoading, isError, refetch } = useQuery({ queryKey: ['dataStatus'], queryFn: fetchDataStatus });
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h1 style={{ fontSize: '2rem', color: '#e2e8f0', margin: 0 }}>Data Monitor</h1>
-        <button 
-          onClick={() => refetch()}
-          style={{ padding: '0.5rem 1rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-        >
-          Refresh Data
-        </button>
-      </div>
-      
-      {isLoading ? (
-        <p style={{ color: '#94a3b8' }}>Loading data status...</p>
-      ) : isError ? (
-        <p style={{ color: '#ef4444' }}>Error loading data status</p>
-      ) : !data || data.length === 0 ? (
-        <p style={{ color: '#94a3b8' }}>No data ingestions have been run yet.</p>
+      <PageHeader
+        title="Data Monitor"
+        description="Ingestion pipeline status and data freshness"
+        action={<Btn variant="secondary" size="sm" onClick={() => refetch()}>Refresh Data</Btn>}
+      />
+
+      {isLoading ? <LoadingState message="Loading data status..." /> : isError ? <ErrorState message="Error loading data status" /> : !data || data.length === 0 ? (
+        <EmptyState message="No data ingestions have been run yet." />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
           {data.map((item: any, idx: number) => (
-            <div key={idx} style={{ padding: '1rem', backgroundColor: '#1e293b', borderRadius: '8px', border: '1px solid #334155' }}>
-              <h2 style={{ fontSize: '1.25rem', color: '#cbd5e1', marginBottom: '1rem' }}>{item.dataset}</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#94a3b8' }}>Source:</span> 
-                  <span style={{ color: '#e2e8f0' }}>{item.source}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#94a3b8' }}>Status:</span> 
-                  <span style={{ color: item.last_status === 'SUCCESS' ? '#22c55e' : item.last_status === 'FAILED' ? '#ef4444' : '#eab308' }}>
-                    {item.last_status}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#94a3b8' }}>Last Successful Update:</span> 
-                  <span style={{ color: '#e2e8f0' }}>
-                    {item.last_successful_update ? new Date(item.last_successful_update).toLocaleString() : 'Never'}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#94a3b8' }}>Records Fetched:</span> 
-                  <span style={{ color: '#e2e8f0' }}>{item.records_fetched}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#94a3b8' }}>Records Inserted:</span> 
-                  <span style={{ color: '#e2e8f0' }}>{item.records_inserted}</span>
-                </div>
-              </div>
-            </div>
+            <DataPanel key={idx} title={item.dataset}>
+              <KVRow label="Source" value={item.source} />
+              <KVRow label="Status" value={
+                <StatusBadge
+                  label={item.last_status}
+                  variant={item.last_status === 'SUCCESS' ? 'ok' : item.last_status === 'FAILED' ? 'danger' : 'warning'}
+                />
+              } />
+              <KVRow label="Last Successful Update" value={item.last_successful_update ? new Date(item.last_successful_update).toLocaleString() : 'Never'} />
+              <KVRow label="Records Fetched" value={item.records_fetched} />
+              <KVRow label="Records Inserted" value={item.records_inserted} />
+            </DataPanel>
           ))}
         </div>
       )}

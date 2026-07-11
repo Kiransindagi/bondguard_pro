@@ -1,16 +1,11 @@
 import pytest
 from datetime import date, datetime, timedelta, timezone
-from fastapi import HTTPException
-from pydantic import ValidationError
-from unittest.mock import patch
 
 from app.db.models import User, Role, Permission, RefreshToken, Portfolio, Breach, AuditEvent
 from app.auth.password import get_password_hash
 from app.auth.tokens import create_access_token
-from app.auth.exceptions import CredentialsException
 from app.core.config import Settings
 from app.risk_control.enums import BreachStatus
-from app.risk_control.audit_service import AuditService
 from scripts.seed.seed_roles_permissions import seed_data as seed_security_data
 
 @pytest.fixture(scope="function")

@@ -9,9 +9,9 @@ class LimitResolver:
     def resolve_applicable_limits(db: Session, portfolio_id: int, valuation_date: date) -> List[RiskLimit]:
         # Exclude inactive, future-effective, and expired limits based on valuation_date
         limits = db.query(RiskLimit).filter(
-            RiskLimit.is_active == True,
+            RiskLimit.is_active.is_(True),
             RiskLimit.effective_from <= valuation_date,
-            or_(RiskLimit.effective_to == None, RiskLimit.effective_to >= valuation_date)
+            or_(RiskLimit.effective_to.is_(None), RiskLimit.effective_to >= valuation_date)
         ).all()
         
         # Precedence: PORTFOLIO > matching scope-specific > GLOBAL

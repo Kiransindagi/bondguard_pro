@@ -60,7 +60,7 @@ app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifica
 app.include_router(scenario_lab.router, prefix=f"{settings.API_V1_STR}/scenario-lab", tags=["scenario_lab"])
 app.include_router(advanced_risk.router, prefix=f"{settings.API_V1_STR}/advanced-risk", tags=["advanced_risk"])
 
-from app.risk_control import setup_risk_control
+from app.risk_control import setup_risk_control  # noqa: E402
 setup_risk_control()
 
 @app.get("/")

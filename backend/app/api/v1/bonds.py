@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.db.database import get_db
-from app.schemas.bond import BondCreate, BondResponse
+from app.schemas.bond import BondCreate, BondResponse, BondUpdate
 from app.services.bond import BondService
 from sqlalchemy.exc import IntegrityError
 from app.auth.dependencies import PermissionChecker
@@ -18,6 +18,14 @@ def create_bond(schema: BondCreate, db: Session = Depends(get_db)):
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=400, detail="Bond ISIN or CUSIP already exists")
+
+@router.patch("/{bond_id}", response_model=BondResponse, dependencies=[Depends(PermissionChecker(PORTFOLIO_WRITE))])
+def update_bond(bond_id: int, schema: BondUpdate, db: Session = Depends(get_db)):
+    svc = BondService(db)
+    bond = svc.update_bond(bond_id, schema)
+    if not bond:
+        raise HTTPException(status_code=404, detail="Bond not found")
+    return bond
 
 @router.get("", response_model=List[BondResponse], dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 def list_bonds(

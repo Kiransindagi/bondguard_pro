@@ -14,7 +14,7 @@ def calculate_component_var(exposures: np.ndarray, covariance_matrix: np.ndarray
     if variance <= 0.0:
         return np.zeros_like(exposures)
         
-    marginal_var = (covariance_matrix @ exposures) / np.sqrt(variance)
+    _marginal_var = (covariance_matrix @ exposures) / np.sqrt(variance)
     
     # Component VaR = exposure * marginal_var * Z
     # We can also compute it as exposure * (Sigma * exposure) / variance * total_var

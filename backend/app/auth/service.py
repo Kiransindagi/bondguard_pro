@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 import logging
 
-from app.db.models import User, RefreshToken, Role, Permission
+from app.db.models import User, RefreshToken
 from app.auth.password import verify_password
 from app.auth.tokens import create_access_token, generate_refresh_token
 from app.auth.exceptions import CredentialsException

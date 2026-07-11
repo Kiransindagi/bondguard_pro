@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.db.models import Bond
-from app.schemas.bond import BondCreate
+from app.schemas.bond import BondCreate, BondUpdate
 from typing import List, Optional
 
 class BondService:
@@ -32,3 +32,14 @@ class BondService:
         if maturity_to:
             query = query.filter(Bond.maturity_date <= maturity_to)
         return query.all()
+
+    def update_bond(self, bond_id: int, schema: BondUpdate) -> Optional[Bond]:
+        bond = self.get_bond(bond_id)
+        if not bond:
+            return None
+        update_data = schema.model_dump(exclude_unset=True)
+        for k, v in update_data.items():
+            setattr(bond, k, v)
+        self.db.commit()
+        self.db.refresh(bond)
+        return bond

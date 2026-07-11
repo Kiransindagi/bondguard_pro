@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 import logging
 
 from app.db.models import User, Role
-from app.notifications.types import NotificationEventType, NotificationSeverity, NotificationCreate
+from app.notifications.types import NotificationEventType, NotificationSeverity
 from app.notifications.service import NotificationService
 from app.notifications.channels import ChannelRegistry
 from app.notifications.preferences import NotificationPreferences
@@ -42,7 +42,7 @@ class NotificationDispatcher:
         # Fetch active users in target roles
         users = db.query(User).join(User.roles).filter(
             Role.name.in_(target_roles),
-            User.is_active == True
+        User.is_active.is_(True)
         ).all()
 
         for user in users:

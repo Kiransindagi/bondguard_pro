@@ -1,4 +1,4 @@
-from typing import Dict, Type
+from typing import Type
 from .in_app import InAppChannel
 
 class ChannelRegistry:

@@ -1,13 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchPortfolios, fetchPortfolioRiskSummary, fetchPortfolioPositionsRisk } from '../api/client';
+import { fetchPortfolioRiskSummary, fetchPortfolioPositionsRisk } from '../api/client';
+import { usePortfolio } from '../auth/PortfolioContext';
+import { PageHeader, MetricCard, DataPanel, SectionHeader, LoadingState, ErrorState, EmptyState, TablePanel, Th, Td } from '../components/ui';
 
 export const MarketRisk = () => {
-  const { data: portfolios, isLoading: loadingPorts } = useQuery({
-    queryKey: ['portfolios'],
-    queryFn: fetchPortfolios,
-  });
-
-  const portfolioId = portfolios && portfolios.length > 0 ? portfolios[0].id : null;
+  const { selectedPortfolioId: portfolioId } = usePortfolio();
 
   const { data: summary, isLoading: loadingSummary, isError: errorSummary } = useQuery({
     queryKey: ['portfolioRiskSummary', portfolioId],
@@ -21,88 +18,60 @@ export const MarketRisk = () => {
     enabled: !!portfolioId,
   });
 
-  if (loadingPorts) return <div style={{ color: '#94a3b8' }}>Loading portfolios...</div>;
-  if (!portfolios || portfolios.length === 0) return <div style={{ color: '#94a3b8' }}>No portfolios exist.</div>;
+  if (!portfolioId) return <EmptyState message="No portfolio selected." />;
+
+  const fmtCcy = (v: any) => '$' + Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
   return (
     <div>
-      <h1 style={{ fontSize: '2rem', color: '#e2e8f0', marginBottom: '1rem' }}>Market Risk</h1>
-      
-      {loadingSummary ? (
-        <p style={{ color: '#94a3b8' }}>Loading risk summary...</p>
-      ) : errorSummary ? (
-        <p style={{ color: '#ef4444' }}>Error loading risk summary.</p>
-      ) : summary && (
-        <>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-             <span style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Valuation Date: {summary.valuation_date}</span>
-             {summary.curve_date && <span style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Curve Date: {summary.curve_date}</span>}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-            <div style={{ padding: '1.5rem', backgroundColor: '#1e293b', borderRadius: '8px' }}>
-              <h3 style={{ color: '#94a3b8', margin: '0 0 0.5rem 0' }}>Total Market Value</h3>
-              <p style={{ color: '#e2e8f0', fontSize: '1.25rem', margin: 0 }}>${Number(summary.total_market_value || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
-            </div>
-            <div style={{ padding: '1.5rem', backgroundColor: '#1e293b', borderRadius: '8px' }}>
-              <h3 style={{ color: '#94a3b8', margin: '0 0 0.5rem 0' }}>Weighted YTM</h3>
-              <p style={{ color: '#e2e8f0', fontSize: '1.25rem', margin: 0 }}>{(Number(summary.weighted_average_ytm || 0) * 100).toFixed(2)}%</p>
-            </div>
-            <div style={{ padding: '1.5rem', backgroundColor: '#1e293b', borderRadius: '8px' }}>
-              <h3 style={{ color: '#94a3b8', margin: '0 0 0.5rem 0' }}>Modified Duration</h3>
-              <p style={{ color: '#e2e8f0', fontSize: '1.25rem', margin: 0 }}>
-                {Number(summary.weighted_modified_duration || 0).toFixed(2)} yrs
-              </p>
-            </div>
-            <div style={{ padding: '1.5rem', backgroundColor: '#1e293b', borderRadius: '8px' }}>
-              <h3 style={{ color: '#94a3b8', margin: '0 0 0.5rem 0' }}>Convexity</h3>
-              <p style={{ color: '#e2e8f0', fontSize: '1.25rem', margin: 0 }}>{Number(summary.weighted_convexity || 0).toFixed(2)}</p>
-            </div>
-            <div style={{ padding: '1.5rem', backgroundColor: '#1e293b', borderRadius: '8px' }}>
-              <h3 style={{ color: '#94a3b8', margin: '0 0 0.5rem 0' }}>Total DV01</h3>
-              <p style={{ color: '#e2e8f0', fontSize: '1.25rem', margin: 0 }}>${Number(summary.total_dv01 || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
-            </div>
-          </div>
-        </>
+      <PageHeader
+        title="Market Risk"
+        description="Duration, convexity, and portfolio-level risk analytics"
+        context={summary ? `Valuation: ${summary.valuation_date}${summary.curve_date ? ` | Curve: ${summary.curve_date}` : ''}` : undefined}
+      />
+
+      {loadingSummary ? <LoadingState message="Loading risk summary..." /> : errorSummary ? <ErrorState message="Error loading risk summary." /> : summary && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '28px' }}>
+          <MetricCard label="Total Market Value" value={fmtCcy(summary.total_market_value)} accent />
+          <MetricCard label="Weighted YTM" value={`${(Number(summary.weighted_average_ytm || 0) * 100).toFixed(2)}%`} />
+          <MetricCard label="Modified Duration" value={Number(summary.weighted_modified_duration || 0).toFixed(2)} unit="yrs" />
+          <MetricCard label="Convexity" value={Number(summary.weighted_convexity || 0).toFixed(2)} />
+          <MetricCard label="Total DV01" value={fmtCcy(summary.total_dv01)} />
+        </div>
       )}
 
-      <h2 style={{ fontSize: '1.5rem', color: '#e2e8f0', marginBottom: '1rem' }}>Position Risk Table</h2>
-      
-      {loadingPos ? (
-        <p style={{ color: '#94a3b8' }}>Loading position risks...</p>
-      ) : errorPos ? (
-        <p style={{ color: '#ef4444' }}>Error loading position risks.</p>
-      ) : positions && positions.length > 0 ? (
-        <div style={{ overflowX: 'auto', backgroundColor: '#1e293b', borderRadius: '8px', padding: '1rem' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: '#e2e8f0' }}>
+      <SectionHeader title="Position Risk Table" />
+
+      {loadingPos ? <LoadingState message="Loading position risks..." /> : errorPos ? <ErrorState message="Error loading position risks." /> : positions && positions.length > 0 ? (
+        <DataPanel noPad>
+          <TablePanel>
             <thead>
-              <tr style={{ borderBottom: '1px solid #334155' }}>
-                <th style={{ padding: '0.75rem' }}>Bond ID</th>
-                <th style={{ padding: '0.75rem' }}>Market Value</th>
-                <th style={{ padding: '0.75rem' }}>Price</th>
-                <th style={{ padding: '0.75rem' }}>YTM</th>
-                <th style={{ padding: '0.75rem' }}>Mod Dur</th>
-                <th style={{ padding: '0.75rem' }}>Convexity</th>
-                <th style={{ padding: '0.75rem' }}>DV01</th>
+              <tr>
+                <Th>Bond ID</Th>
+                <Th right>Market Value</Th>
+                <Th right>Price</Th>
+                <Th right>YTM</Th>
+                <Th right>Mod Dur</Th>
+                <Th right>Convexity</Th>
+                <Th right>DV01</Th>
               </tr>
             </thead>
             <tbody>
               {positions.map((pos: any) => (
-                <tr key={pos.bond_id} style={{ borderBottom: '1px solid #334155' }}>
-                  <td style={{ padding: '0.75rem' }}>{pos.bond_id}</td>
-                  <td style={{ padding: '0.75rem' }}>${Number(pos.market_value).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                  <td style={{ padding: '0.75rem' }}>${Number(pos.clean_price).toFixed(2)}</td>
-                  <td style={{ padding: '0.75rem' }}>{(pos.ytm_decimal * 100).toFixed(2)}%</td>
-                  <td style={{ padding: '0.75rem' }}>{Number(pos.modified_duration_years).toFixed(2)}</td>
-                  <td style={{ padding: '0.75rem' }}>{Number(pos.convexity).toFixed(2)}</td>
-                  <td style={{ padding: '0.75rem' }}>${Number(pos.dv01_currency).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                <tr key={pos.bond_id}>
+                  <Td>{pos.bond_id}</Td>
+                  <Td right mono>{fmtCcy(pos.market_value)}</Td>
+                  <Td right mono>${Number(pos.clean_price).toFixed(2)}</Td>
+                  <Td right mono>{(pos.ytm_decimal * 100).toFixed(2)}%</Td>
+                  <Td right mono>{Number(pos.modified_duration_years).toFixed(2)}</Td>
+                  <Td right mono>{Number(pos.convexity).toFixed(2)}</Td>
+                  <Td right mono>{fmtCcy(pos.dv01_currency)}</Td>
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      ) : (
-        <p style={{ color: '#94a3b8' }}>No active positions found.</p>
-      )}
+          </TablePanel>
+        </DataPanel>
+      ) : <EmptyState message="No active positions found." />}
     </div>
   );
 };

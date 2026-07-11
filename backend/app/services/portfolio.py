@@ -19,8 +19,11 @@ class PortfolioService:
     def get_portfolio(self, portfolio_id: int) -> Optional[Portfolio]:
         return self.db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
 
-    def list_portfolios(self) -> List[Portfolio]:
-        return self.db.query(Portfolio).all()
+    def list_portfolios(self, active_only: bool = False) -> List[Portfolio]:
+        query = self.db.query(Portfolio)
+        if active_only:
+            query = query.filter(Portfolio.is_active == True, Portfolio.status == "ACTIVE")
+        return query.all()
 
     def update_portfolio(self, portfolio_id: int, schema: PortfolioUpdate) -> Optional[Portfolio]:
         port = self.get_portfolio(portfolio_id)
@@ -37,10 +40,8 @@ class PortfolioService:
         port = self.get_portfolio(portfolio_id)
         if not port:
             return False
-        if self.db.query(Position).filter(Position.portfolio_id == portfolio_id, Position.quantity > 0).first():
-            raise HTTPException(status_code=400, detail="Cannot delete portfolio with active positions")
-        
-        self.db.delete(port)
+        port.is_active = False
+        port.status = "ARCHIVED"
         self.db.commit()
         return True
 

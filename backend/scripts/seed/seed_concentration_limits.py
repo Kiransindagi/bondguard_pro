@@ -16,18 +16,18 @@ def seed_limits(db=None):
             {'limit_type': 'MAX_VERY_LOW_LIQUIDITY_WEIGHT', 'threshold': 0.10, 'warning': 0.05}
         ]
         
-        for l in limits:
+        for limit_dict in limits:
             existing = db.query(ConcentrationLimit).filter(
-                ConcentrationLimit.limit_type == l['limit_type'],
-                ConcentrationLimit.portfolio_id == None
+                ConcentrationLimit.limit_type == limit_dict['limit_type'],
+                ConcentrationLimit.portfolio_id.is_(None)
             ).first()
             
             if not existing:
                 lim = ConcentrationLimit(
                     portfolio_id=None,
-                    limit_type=l['limit_type'],
-                    threshold_value=l['threshold'],
-                    warning_threshold_value=l['warning'],
+                    limit_type=limit_dict['limit_type'],
+                    threshold_value=limit_dict['threshold'],
+                    warning_threshold_value=limit_dict['warning'],
                     is_active=True
                 )
                 db.add(lim)
