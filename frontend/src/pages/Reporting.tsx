@@ -17,7 +17,7 @@ export const Reporting = () => {
   if (!portfolioId) return <><PageHeader title="Executive Reporting" description="Historical risk snapshots and institutional report generation" /><EmptyState message="No portfolio selected." /></>;
   if (snapsLoading || reportLoading) return <LoadingState message="Loading Reporting..." />;
 
-  const fmtCcy = (v: any) => `$${Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmtCcy = (v: any) => `$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <div>

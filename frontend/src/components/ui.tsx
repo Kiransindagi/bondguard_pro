@@ -97,14 +97,14 @@ export const MetricCard: React.FC<MetricCardProps> = ({ label, value, unit, sub,
   const glow = danger ? 'rgba(248,113,113,0.04)' : warning ? 'rgba(251,191,36,0.04)' : accent ? 'var(--accent-dim)' : 'transparent';
   return (
     <div style={{
-      backgroundColor: 'var(--bg-panel)',
+      background: 'linear-gradient(145deg, rgba(19,43,73,0.52), var(--bg-panel) 56%)',
       border: `1px solid ${border}`,
       borderRadius: 'var(--radius-md)',
       padding: '18px 20px',
       display: 'flex',
       flexDirection: 'column',
       gap: '6px',
-      boxShadow: `0 0 0 1px ${glow} inset`,
+      boxShadow: `0 0 0 1px ${glow} inset, 0 12px 28px rgba(0,0,0,0.10)`,
       ...style,
     }}>
       <div style={T.label}>{label}</div>
@@ -128,7 +128,7 @@ interface DataPanelProps {
 }
 
 export const DataPanel: React.FC<DataPanelProps> = ({ title, headerAction, children, style, bodyStyle, noPad }) => (
-  <div style={{ ...T.panel, overflow: 'hidden', ...style }}>
+  <div style={{ ...T.panel, background: 'linear-gradient(145deg, rgba(19,43,73,0.38), var(--bg-panel) 58%)', boxShadow: '0 12px 28px rgba(0,0,0,0.08)', overflow: 'hidden', ...style }}>
     {title && (
       <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={T.sectionHead}>{title}</span>

@@ -1,7 +1,23 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Bell } from 'lucide-react';
+import {
+  Activity,
+  BarChart3,
+  Bell,
+  BookOpen,
+  BriefcaseBusiness,
+  Database,
+  FileText,
+  Gauge,
+  Landmark,
+  LayoutDashboard,
+  LineChart,
+  Settings,
+  ShieldAlert,
+  SlidersHorizontal,
+  Waves,
+} from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { usePortfolio } from '../auth/PortfolioContext';
 import * as perms from '../auth/permissions';
@@ -15,44 +31,44 @@ import {
 const NAV_GROUPS = [
   {
     title: 'Dashboard',
-    items: [{ path: '/', label: 'Overview', permission: perms.PORTFOLIO_READ }],
+    items: [{ path: '/', label: 'Overview', icon: LayoutDashboard, permission: perms.PORTFOLIO_READ }],
   },
   {
     title: 'Portfolio',
     items: [
-      { path: '/portfolio',     label: 'Portfolio',     permission: perms.PORTFOLIO_READ },
-      { path: '/bond-explorer', label: 'Bond Explorer', permission: perms.PORTFOLIO_READ },
+      { path: '/portfolio',     label: 'Portfolio', icon: BriefcaseBusiness, permission: perms.PORTFOLIO_READ },
+      { path: '/bond-explorer', label: 'Bond Explorer', icon: BookOpen, permission: perms.PORTFOLIO_READ },
     ],
   },
   {
     title: 'Risk Analytics',
     items: [
-      { path: '/yield-curve',      label: 'Yield Curve',      permission: perms.PORTFOLIO_READ },
-      { path: '/credit-risk',      label: 'Credit Risk',      permission: perms.RISK_READ },
-      { path: '/market-risk',      label: 'Market Risk',      permission: perms.RISK_READ },
-      { path: '/stress-testing',   label: 'Stress Testing',   permission: perms.RISK_READ },
-      { path: '/scenario-lab',     label: 'Scenario Lab',     permission: perms.STRESS_EXECUTE },
-      { path: '/advanced-risk',    label: 'Advanced Analytics', permission: perms.RISK_READ },
-      { path: '/liquidity-risk',   label: 'Liquidity Risk',   permission: perms.RISK_READ },
-      { path: '/risk-intelligence',label: 'Risk Intelligence', permission: perms.RISK_READ },
+      { path: '/yield-curve',      label: 'Yield Curve', icon: LineChart, permission: perms.PORTFOLIO_READ },
+      { path: '/credit-risk',      label: 'Credit Risk', icon: Landmark, permission: perms.RISK_READ },
+      { path: '/market-risk',      label: 'Market Risk', icon: Activity, permission: perms.RISK_READ },
+      { path: '/stress-testing',   label: 'Stress Testing', icon: ShieldAlert, permission: perms.RISK_READ },
+      { path: '/scenario-lab',     label: 'Scenario Lab', icon: SlidersHorizontal, permission: perms.STRESS_EXECUTE },
+      { path: '/advanced-risk',    label: 'Advanced Analytics', icon: BarChart3, permission: perms.RISK_READ },
+      { path: '/liquidity-risk',   label: 'Liquidity Risk', icon: Waves, permission: perms.RISK_READ },
+      { path: '/risk-intelligence',label: 'Risk Intelligence', icon: Gauge, permission: perms.RISK_READ },
     ],
   },
   {
     title: 'Governance',
     items: [
-      { path: '/risk-control',       label: 'Risk Control',       permission: perms.RISK_READ },
-      { path: '/risk-control/limits',label: 'Risk Limits',        permission: perms.RISK_READ },
-      { path: '/reporting',          label: 'Executive Reporting', permission: perms.PORTFOLIO_READ },
+      { path: '/risk-control',       label: 'Risk Control', icon: ShieldAlert, permission: perms.RISK_READ },
+      { path: '/risk-control/limits',label: 'Risk Limits', icon: Gauge, permission: perms.RISK_READ },
+      { path: '/reporting',          label: 'Executive Reporting', icon: FileText, permission: perms.PORTFOLIO_READ },
     ],
   },
   {
     title: 'Operations',
     items: [
-      { path: '/data-monitor',    label: 'Data Monitor',    permission: perms.AUDIT_READ },
-      { path: '/data-operations', label: 'Data Operations', permission: perms.AUDIT_READ },
-      { path: '/data-quality',    label: 'Data Quality',    permission: perms.AUDIT_READ },
-      { path: '/analytics-runs',  label: 'Analytics Runs',  permission: perms.RISK_READ },
-      { path: '/system',          label: 'System',          permission: perms.PORTFOLIO_READ },
+      { path: '/data-monitor',    label: 'Data Monitor', icon: Database, permission: perms.AUDIT_READ },
+      { path: '/data-operations', label: 'Data Operations', icon: Database, permission: perms.AUDIT_READ },
+      { path: '/data-quality',    label: 'Data Quality', icon: Activity, permission: perms.AUDIT_READ },
+      { path: '/analytics-runs',  label: 'Analytics Runs', icon: BarChart3, permission: perms.RISK_READ },
+      { path: '/system',          label: 'System', icon: Settings, permission: perms.PORTFOLIO_READ },
     ],
   },
 ];
@@ -112,12 +128,12 @@ export const Layout = () => {
       }}>
 
         {/* Wordmark */}
-        <div style={{ padding: '20px 20px 18px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+        <div style={{ padding: '22px 20px 19px', borderBottom: '1px solid var(--border-subtle)', background: 'linear-gradient(135deg, rgba(56,189,248,0.05), transparent 55%)' }}>
+          <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
             BondGuard<span style={{ color: 'var(--accent)' }}> Pro</span>
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px', letterSpacing: '0.04em' }}>
-            Fixed Income Risk Platform
+          <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', letterSpacing: '0.11em', textTransform: 'uppercase' }}>
+            Fixed-Income Risk Intelligence
           </div>
         </div>
 
@@ -136,6 +152,7 @@ export const Layout = () => {
                   {group.title}
                 </div>
                 {visible.map((item) => {
+                  const Icon = item.icon;
                   const active = location.pathname === item.path ||
                     (item.path !== '/' && location.pathname.startsWith(item.path));
                   return (
@@ -143,13 +160,15 @@ export const Layout = () => {
                       key={item.path}
                       to={item.path}
                       style={{
-                        display: 'block',
-                        padding: '7px 20px 7px 17px',
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        margin: '1px 10px', padding: '8px 10px',
                         fontSize: '12.5px',
                         fontWeight: active ? 500 : 400,
                         color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                        backgroundColor: active ? 'var(--bg-panel-hover)' : 'transparent',
-                        borderLeft: active ? '3px solid var(--accent)' : '3px solid transparent',
+                        backgroundColor: active ? 'rgba(30, 64, 175, 0.28)' : 'transparent',
+                        border: active ? '1px solid rgba(96,165,250,0.16)' : '1px solid transparent',
+                        borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
+                        borderRadius: 'var(--radius-sm)',
                         textDecoration: 'none',
                         transition: 'var(--transition)',
                         letterSpacing: '0.01em',
@@ -157,6 +176,7 @@ export const Layout = () => {
                       onMouseEnter={e => { if (!active) { e.currentTarget.style.backgroundColor = 'var(--bg-panel)'; e.currentTarget.style.color = 'var(--text-primary)'; }}}
                       onMouseLeave={e => { if (!active) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}}
                     >
+                      <Icon size={15} strokeWidth={active ? 2 : 1.6} />
                       {item.label}
                     </Link>
                   );
@@ -174,23 +194,26 @@ export const Layout = () => {
                 Admin Portal
               </div>
               {[
-                { path: '/admin/portfolios', label: 'Portfolios' },
-                { path: '/admin/bonds',      label: 'Bonds Master' },
-                { path: '/admin/transactions', label: 'Transactions' },
+                { path: '/admin/portfolios', label: 'Portfolios', icon: BriefcaseBusiness },
+                { path: '/admin/bonds',      label: 'Bonds Master', icon: BookOpen },
+                { path: '/admin/transactions', label: 'Transactions', icon: FileText },
               ].map((item) => {
+                const Icon = item.icon;
                 const active = location.pathname.startsWith(item.path);
                 return (
                   <Link
                     key={item.path}
                     to={item.path}
                     style={{
-                      display: 'block',
-                      padding: '7px 20px 7px 17px',
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      margin: '1px 10px', padding: '8px 10px',
                       fontSize: '12.5px',
                       fontWeight: active ? 500 : 400,
                       color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      backgroundColor: active ? 'var(--bg-panel-hover)' : 'transparent',
-                      borderLeft: active ? '3px solid var(--accent)' : '3px solid transparent',
+                      backgroundColor: active ? 'rgba(30, 64, 175, 0.28)' : 'transparent',
+                      border: active ? '1px solid rgba(96,165,250,0.16)' : '1px solid transparent',
+                      borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
+                      borderRadius: 'var(--radius-sm)',
                       textDecoration: 'none',
                       transition: 'var(--transition)',
                       letterSpacing: '0.01em',
@@ -198,6 +221,7 @@ export const Layout = () => {
                     onMouseEnter={e => { if (!active) { e.currentTarget.style.backgroundColor = 'var(--bg-panel)'; e.currentTarget.style.color = 'var(--text-primary)'; }}}
                     onMouseLeave={e => { if (!active) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}}
                   >
+                    <Icon size={15} strokeWidth={active ? 2 : 1.6} />
                     {item.label}
                   </Link>
                 );
@@ -205,6 +229,17 @@ export const Layout = () => {
             </div>
           )}
         </nav>
+
+        {selectedPortfolioId && portfolios?.find((portfolio) => portfolio.id === selectedPortfolioId) && (
+          <div style={{ margin: '8px 14px 12px', padding: '12px 14px', backgroundColor: 'var(--bg-inset)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Active portfolio</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600 }}>{portfolios.find((portfolio) => portfolio.id === selectedPortfolioId)?.name}</span>
+              <span style={{ color: 'var(--text-accent)', fontSize: '16px' }}>›</span>
+            </div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '8px' }}>As of {today}</div>
+          </div>
+        )}
 
         {/* User block */}
         {user && (

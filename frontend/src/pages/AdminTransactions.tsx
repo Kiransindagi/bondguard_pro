@@ -75,7 +75,7 @@ export const AdminTransactions: React.FC = () => {
     marginBottom: '12px'
   };
 
-  const fmtQty = (v: any) => Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  const fmtQty = (v: any) => Number(v || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
 
   return (
     <div>

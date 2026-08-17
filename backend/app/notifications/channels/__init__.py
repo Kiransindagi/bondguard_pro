@@ -1,5 +1,3 @@
-from typing import Type
-
 from .in_app import InAppChannel
 
 

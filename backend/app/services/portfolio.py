@@ -22,7 +22,7 @@ class PortfolioService:
     def list_portfolios(self, active_only: bool = False) -> list[Portfolio]:
         query = self.db.query(Portfolio)
         if active_only:
-            query = query.filter(Portfolio.is_active == True, Portfolio.status == "ACTIVE")
+            query = query.filter(Portfolio.is_active.is_(True), Portfolio.status == "ACTIVE")
         return query.all()
 
     def update_portfolio(self, portfolio_id: int, schema: PortfolioUpdate) -> Portfolio | None:

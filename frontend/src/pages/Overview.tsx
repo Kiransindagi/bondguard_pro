@@ -32,7 +32,7 @@ export const Overview = () => {
     enabled: !!portfolioId,
   });
 
-  const fmtCurrency = (v: any) => '$' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtCurrency = (v: any) => '$' + Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtNum = (v: any, d = 2) => Number(v || 0).toFixed(d);
 
   if (!portfolioId) {

@@ -11,7 +11,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 const fmtBps = (v: number) => `${v > 0 ? '+' : ''}${v} bps`;
-const fmtCcy = (v: number) => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmtCcy = (v: number) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export const ScenarioLab = () => {
   const queryClient = useQueryClient();

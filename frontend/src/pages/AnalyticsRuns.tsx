@@ -10,7 +10,7 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid var(--border-muted)', fontFamily: 'var(--font-sans)', fontSize: '11px',
 };
 
-const fmtCcy = (v: any) => `$${Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmtCcy = (v: any) => `$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export const AnalyticsRuns = () => {
   const queryClient = useQueryClient();
@@ -67,13 +67,13 @@ export const AnalyticsRuns = () => {
                     <KVRow label="Unrealized P&L" value={<span style={{ color: Number(latest.snapshot.total_unrealized_pnl) >= 0 ? 'var(--text-positive)' : 'var(--text-critical)' }}>{fmtCcy(latest.snapshot.total_unrealized_pnl)}</span>} />
                     <KVRow label="Portfolio YTM" value={`${(latest.snapshot.weighted_ytm * 100).toFixed(2)}%`} />
                     <KVRow label="Modified Duration" value={`${latest.snapshot.weighted_modified_duration.toFixed(2)} yrs`} />
-                    <KVRow label="Total DV01" value={`$${Number(latest.snapshot.total_dv01).toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
+                    <KVRow label="Total DV01" value={`$${Number(latest.snapshot.total_dv01).toLocaleString('en-US', { maximumFractionDigits: 0 })}`} />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <KVRow label="Historical VaR (95%)" value={latest.snapshot.historical_var_95_1d ? `$${Number(latest.snapshot.historical_var_95_1d).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : 'N/A'} />
-                    <KVRow label="Expected Shortfall" value={latest.snapshot.expected_shortfall_95_1d ? `$${Number(latest.snapshot.expected_shortfall_95_1d).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : 'N/A'} />
+                    <KVRow label="Historical VaR (95%)" value={latest.snapshot.historical_var_95_1d ? `$${Number(latest.snapshot.historical_var_95_1d).toLocaleString('en-US', { maximumFractionDigits: 0 })}` : 'N/A'} />
+                    <KVRow label="Expected Shortfall" value={latest.snapshot.expected_shortfall_95_1d ? `$${Number(latest.snapshot.expected_shortfall_95_1d).toLocaleString('en-US', { maximumFractionDigits: 0 })}` : 'N/A'} />
                     <KVRow label="Liquidity Score" value={latest.snapshot.weighted_liquidity_score ? `${latest.snapshot.weighted_liquidity_score.toFixed(2)} / 100` : 'N/A'} />
-                    <KVRow label="Liquidation Cost" value={latest.snapshot.liquidation_cost ? `$${Number(latest.snapshot.liquidation_cost).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : 'N/A'} />
+                    <KVRow label="Liquidation Cost" value={latest.snapshot.liquidation_cost ? `$${Number(latest.snapshot.liquidation_cost).toLocaleString('en-US', { maximumFractionDigits: 0 })}` : 'N/A'} />
                     <KVRow label="Limit Breach Status" value={<span style={{ fontWeight: 600, color: latest.snapshot.overall_limit_status === 'PASS' ? 'var(--text-positive)' : 'var(--text-critical)' }}>{latest.snapshot.overall_limit_status} ({latest.snapshot.open_breach_count})</span>} />
                   </div>
                 </div>

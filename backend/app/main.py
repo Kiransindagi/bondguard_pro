@@ -23,6 +23,7 @@ from app.api.v1 import (
 )
 from app.core.config import settings
 from app.core.observability import CorrelationIdMiddleware, setup_structured_logging
+from app.risk_control import setup_risk_control
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -81,8 +82,6 @@ app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifica
 app.include_router(scenario_lab.router, prefix=f"{settings.API_V1_STR}/scenario-lab", tags=["scenario_lab"])
 app.include_router(advanced_risk.router, prefix=f"{settings.API_V1_STR}/advanced-risk", tags=["advanced_risk"])
 
-from app.risk_control import setup_risk_control
-
 setup_risk_control()
 
 @app.get("/")
@@ -92,4 +91,3 @@ def read_root():
 @app.get("/health")
 def read_health():
     return {"status": "ok"}
-

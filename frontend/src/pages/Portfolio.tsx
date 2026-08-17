@@ -20,7 +20,7 @@ export const Portfolio = () => {
 
   if (!portfolioId) return <EmptyState message="No portfolio selected." />;
 
-  const fmtCcy = (v: any) => '$' + Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const fmtCcy = (v: any) => '$' + Number(v || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
   return (
     <div>

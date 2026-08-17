@@ -5,16 +5,15 @@ Revises: cf4dd306ac1a
 Create Date: 2026-08-16
 """
 
-from typing import Sequence, Union
+from typing import Sequence
 
 from alembic import op
 from sqlalchemy import Column, DateTime, String
 
-
 revision: str = "d0a1b2c3d4e5"
-down_revision: Union[str, Sequence[str], None] = "cf4dd306ac1a"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "cf4dd306ac1a"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
