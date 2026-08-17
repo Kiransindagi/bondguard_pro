@@ -34,6 +34,7 @@ export const Overview = () => {
 
   const fmtCurrency = (v: any) => '$' + Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtNum = (v: any, d = 2) => Number(v || 0).toFixed(d);
+  const limitTone = (status: string) => status === 'BREACH' ? 'var(--text-critical)' : status === 'WARNING' ? 'var(--text-warning)' : 'var(--text-positive)';
 
   if (!portfolioId) {
     return (
@@ -162,6 +163,30 @@ export const Overview = () => {
           )}
         </DataPanel>
       </div>
+
+      <DataPanel title="Risk Limit Utilization" style={{ marginBottom: '28px' }} headerAction={<span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Latest evaluated limits</span>}>
+        {isReportLoading ? <LoadingState /> : !report?.limit_results?.length ? <EmptyState message="No risk-limit evaluation is available." /> : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(165px, 1fr))', gap: '12px' }}>
+            {report.limit_results.slice(0, 6).map((limit: any) => {
+              const utilization = Math.max(0, Number(limit.utilization_percent || 0) * 100);
+              const tone = limitTone(limit.status);
+              return (
+                <div key={`${limit.metric_type}-${limit.threshold_value}`} style={{ backgroundColor: 'var(--bg-inset)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(limit.metric_type).replaceAll('_', ' ')}</span>
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: tone }}>{limit.status}</span>
+                  </div>
+                  <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>{utilization.toFixed(0)}%</div>
+                  <div style={{ height: '5px', backgroundColor: 'rgba(148,163,184,0.16)', borderRadius: '999px', marginTop: '10px', overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.min(utilization, 100)}%`, height: '100%', backgroundColor: tone, borderRadius: 'inherit' }} />
+                  </div>
+                  <div style={{ marginTop: '7px', fontSize: '10px', color: 'var(--text-muted)' }}>Limit: {Number(limit.threshold_value).toLocaleString('en-US')}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </DataPanel>
 
       {/* ── Historical Trend Charts ─────────────────────────────── */}
       <SectionHeader title="Historical Risk Trends" />
