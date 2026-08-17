@@ -1,7 +1,8 @@
 from datetime import date
 from decimal import Decimal
-from typing import List, Tuple
+
 from dateutil.relativedelta import relativedelta
+
 
 def _get_frequency_months(frequency: str) -> int:
     if frequency == "annual":
@@ -13,7 +14,7 @@ def _get_frequency_months(frequency: str) -> int:
     else:
         raise ValueError(f"Unknown frequency: {frequency}")
 
-def generate_coupon_schedule(issue_date: date, maturity_date: date, frequency: str) -> List[date]:
+def generate_coupon_schedule(issue_date: date, maturity_date: date, frequency: str) -> list[date]:
     months_step = _get_frequency_months(frequency)
     schedule = []
     current = maturity_date
@@ -22,7 +23,7 @@ def generate_coupon_schedule(issue_date: date, maturity_date: date, frequency: s
         current = current - relativedelta(months=months_step)
     return schedule
 
-def calculate_cash_flows(face_value: Decimal, coupon_rate: Decimal, frequency: str, schedule: List[date]) -> List[Tuple[date, Decimal]]:
+def calculate_cash_flows(face_value: Decimal, coupon_rate: Decimal, frequency: str, schedule: list[date]) -> list[tuple[date, Decimal]]:
     if not schedule:
         return []
     months_step = _get_frequency_months(frequency)
@@ -60,12 +61,12 @@ def _days_in_year(d: date, convention: str) -> Decimal:
     else:
         raise ValueError(f"Unknown day count convention: {convention}")
 
-def calculate_accrued_interest(settlement_date: date, issue_date: date, schedule: List[date], 
+def calculate_accrued_interest(settlement_date: date, issue_date: date, schedule: list[date], 
                                face_value: Decimal, coupon_rate: Decimal, convention: str) -> Decimal:
     if settlement_date <= issue_date:
-        return Decimal('0')
+        return Decimal(0)
     if settlement_date >= schedule[-1]:
-        return Decimal('0')
+        return Decimal(0)
 
     prev_coupon_date = issue_date
     for dt in schedule:
@@ -78,8 +79,8 @@ def calculate_accrued_interest(settlement_date: date, issue_date: date, schedule
     
     return face_value * coupon_rate * Decimal(days) / days_year
 
-def calculate_dirty_price(cash_flows: List[Tuple[date, Decimal]], settlement_date: date, ytm: Decimal, convention: str) -> Decimal:
-    price = Decimal('0')
+def calculate_dirty_price(cash_flows: list[tuple[date, Decimal]], settlement_date: date, ytm: Decimal, convention: str) -> Decimal:
+    price = Decimal(0)
     for dt, cf in cash_flows:
         if dt <= settlement_date:
             continue
@@ -88,7 +89,7 @@ def calculate_dirty_price(cash_flows: List[Tuple[date, Decimal]], settlement_dat
         years = Decimal(days) / days_year
         # Continuous compounding approximation for simplicity, or discrete: cf / (1+ytm)^years
         # Using discrete:
-        price += cf / ((Decimal('1') + ytm) ** years)
+        price += cf / ((Decimal(1) + ytm) ** years)
     return price
 
 def clean_to_dirty_price(clean_price: Decimal, accrued_interest: Decimal) -> Decimal:

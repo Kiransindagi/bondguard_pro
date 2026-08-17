@@ -1,11 +1,11 @@
-from sqlalchemy.orm import Session
 import logging
 
-from app.db.models import User, Role
-from app.notifications.types import NotificationEventType, NotificationSeverity
-from app.notifications.service import NotificationService
+from app.db.models import Role, User
 from app.notifications.channels import ChannelRegistry
 from app.notifications.preferences import NotificationPreferences
+from app.notifications.service import NotificationService
+from app.notifications.types import NotificationEventType, NotificationSeverity
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +17,9 @@ class NotificationDispatcher:
         severity: NotificationSeverity,
         title: str,
         message: str,
-        entity_type: str = None,
-        entity_id: int = None,
-        context: dict = None
+        entity_type: str | None = None,
+        entity_id: int | None = None,
+        context: dict | None = None
     ):
         if context is None:
             context = {"title": title, "message": message}

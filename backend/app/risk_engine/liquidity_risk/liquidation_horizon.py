@@ -1,5 +1,7 @@
 import math
-from .types import LiquidityAssumptionConfig, HorizonBucket
+
+from .types import HorizonBucket, LiquidityAssumptionConfig
+
 
 def estimate_daily_capacity(bond_type: str, rating: str, config: LiquidityAssumptionConfig) -> float:
     t = bond_type.upper()

@@ -1,22 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
-from sqlalchemy.orm import Session
-from datetime import date
-from typing import Optional
-import io
 import csv
-
-from app.db.database import get_db
-from app.db.models import PortfolioRiskSnapshot
-from app.reporting.snapshot_service import SnapshotService
-from app.reporting.executive_report import ExecutiveReportService
+import io
+from datetime import date
 
 from app.auth.dependencies import PermissionChecker
 from app.auth.permissions import PORTFOLIO_READ, REPORT_GENERATE
+from app.db.database import get_db
+from app.db.models import PortfolioRiskSnapshot
+from app.reporting.executive_report import ExecutiveReportService
+from app.reporting.snapshot_service import SnapshotService
+from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 @router.post("/portfolios/{portfolio_id}/snapshots", dependencies=[Depends(PermissionChecker(REPORT_GENERATE))])
-def generate_snapshot(portfolio_id: int, valuation_date: date = None, db: Session = Depends(get_db)):
+def generate_snapshot(portfolio_id: int, valuation_date: date | None = None, db: Session = Depends(get_db)):
     if not valuation_date:
         valuation_date = date.today()
     try:
@@ -42,8 +40,8 @@ def generate_snapshot(portfolio_id: int, valuation_date: date = None, db: Sessio
 @router.get("/portfolios/{portfolio_id}/snapshots", dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 def get_snapshots(
     portfolio_id: int, 
-    date_from: Optional[date] = None, 
-    date_to: Optional[date] = None, 
+    date_from: date | None = None, 
+    date_to: date | None = None, 
     limit: int = 30, 
     db: Session = Depends(get_db)
 ):
@@ -67,7 +65,7 @@ def get_latest_snapshot(portfolio_id: int, db: Session = Depends(get_db)):
     return snapshot
 
 @router.get("/portfolios/{portfolio_id}/executive-report", dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
-def get_executive_report(portfolio_id: int, snapshot_date: Optional[date] = None, db: Session = Depends(get_db)):
+def get_executive_report(portfolio_id: int, snapshot_date: date | None = None, db: Session = Depends(get_db)):
     if not snapshot_date:
         latest = db.query(PortfolioRiskSnapshot).filter(
             PortfolioRiskSnapshot.portfolio_id == portfolio_id
@@ -113,7 +111,7 @@ def export_snapshots_csv(portfolio_id: int, db: Session = Depends(get_db)):
     return Response(content=output.getvalue(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=snapshots.csv"})
 
 @router.get("/portfolios/{portfolio_id}/executive-report.pdf", dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
-def export_executive_report_pdf(portfolio_id: int, snapshot_date: Optional[date] = None, db: Session = Depends(get_db)):
+def export_executive_report_pdf(portfolio_id: int, snapshot_date: date | None = None, db: Session = Depends(get_db)):
     if not snapshot_date:
         latest = db.query(PortfolioRiskSnapshot).filter(
             PortfolioRiskSnapshot.portfolio_id == portfolio_id
@@ -128,18 +126,30 @@ def export_executive_report_pdf(portfolio_id: int, snapshot_date: Optional[date]
         raise HTTPException(status_code=400, detail=str(e))
         
     try:
-        from reportlab.lib.pagesizes import letter
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-        from reportlab.lib.styles import getSampleStyleSheet
         from reportlab.lib import colors
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.platypus import (
+            Paragraph,
+            SimpleDocTemplate,
+            Spacer,
+            Table,
+            TableStyle,
+        )
     except ImportError:
         import subprocess
         import sys
         subprocess.check_call([sys.executable, "-m", "pip", "install", "reportlab"])
-        from reportlab.lib.pagesizes import letter
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-        from reportlab.lib.styles import getSampleStyleSheet
         from reportlab.lib import colors
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.platypus import (
+            Paragraph,
+            SimpleDocTemplate,
+            Spacer,
+            Table,
+            TableStyle,
+        )
         
     output = io.BytesIO()
     doc = SimpleDocTemplate(output, pagesize=letter)

@@ -1,13 +1,17 @@
 import logging
 from datetime import date, datetime, timezone
-from sqlalchemy import func
-from sqlalchemy.orm import Session
-from app.core.observability import log_duration
 
+from app.core.observability import log_duration
 from app.db.models import (
-    AnalyticsRun, PipelineRun, DataQualityRun, Portfolio, YieldCurvePoint
+    AnalyticsRun,
+    DataQualityRun,
+    PipelineRun,
+    Portfolio,
+    YieldCurvePoint,
 )
 from app.reporting.snapshot_service import SnapshotService
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +76,11 @@ class AnalyticsBatchService:
                 db.refresh(run)
 
                 # Dispatch notifications for model degradation or unavailability
-                from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+                from app.notifications import (
+                    NotificationDispatcher,
+                    NotificationEventType,
+                    NotificationSeverity,
+                )
                 if model_status == "UNAVAILABLE":
                     NotificationDispatcher.dispatch_event(
                         db=db,
@@ -110,7 +118,11 @@ class AnalyticsBatchService:
                 db.refresh(failed_run)
 
                 # Dispatch notification for analytics run failure
-                from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+                from app.notifications import (
+                    NotificationDispatcher,
+                    NotificationEventType,
+                    NotificationSeverity,
+                )
                 NotificationDispatcher.dispatch_event(
                     db=db,
                     event_type=NotificationEventType.ANALYTICS_FAILURE,
@@ -122,4 +134,4 @@ class AnalyticsBatchService:
                 )
 
                 return failed_run
-            raise e
+            raise

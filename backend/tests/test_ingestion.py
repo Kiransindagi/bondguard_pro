@@ -1,7 +1,9 @@
-from unittest.mock import patch
 from datetime import date
+from unittest.mock import patch
+
 from app.data.ingestion import DataIngestor
-from app.db.models import YieldCurvePoint, MarketPrice, DataIngestionRun
+from app.db.models import DataIngestionRun, MarketPrice, YieldCurvePoint
+
 
 def test_fred_yield_curve_ingestion_mock(client, db_session):
     ingestor = DataIngestor(db_session)

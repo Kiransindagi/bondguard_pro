@@ -1,14 +1,15 @@
-from sqlalchemy.orm import Session
-from app.notifications.types import NotificationCreate
+import logging
+
 from app.notifications.service import NotificationService
 from app.notifications.templates import NotificationTemplateRenderer
-import logging
+from app.notifications.types import NotificationCreate
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
 class InAppChannel:
     @staticmethod
-    def send(db: Session, user_id: int, event_type: str, severity: str, context: dict, entity_type: str = None, entity_id: int = None):
+    def send(db: Session, user_id: int, event_type: str, severity: str, context: dict, entity_type: str | None = None, entity_id: int | None = None):
         """
         Sends an in-app notification by persisting it via NotificationService.
         """

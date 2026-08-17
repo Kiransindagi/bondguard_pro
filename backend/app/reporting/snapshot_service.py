@@ -1,8 +1,8 @@
-from sqlalchemy.orm import Session
 from datetime import date, datetime
+
 from app.db.models import PortfolioRiskSnapshot
 from app.risk_control.reporting_service import ReportingService
-from decimal import Decimal
+from sqlalchemy.orm import Session
 
 
 class SnapshotService:

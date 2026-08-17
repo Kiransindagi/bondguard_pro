@@ -1,9 +1,15 @@
-import httpx
-from datetime import datetime, date
-from typing import List, Dict, Any, Optional
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from app.core.config import settings
 import logging
+from datetime import date, datetime
+from typing import Any
+
+import httpx
+from app.core.config import settings
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +26,7 @@ class FredAPIClient:
         wait=wait_exponential(multiplier=1, min=2, max=10),
         retry=retry_if_exception_type((httpx.RequestError, httpx.HTTPStatusError))
     )
-    def fetch_series(self, series_id: str, start_date: Optional[date] = None, end_date: Optional[date] = None) -> List[Dict[str, Any]]:
+    def fetch_series(self, series_id: str, start_date: date | None = None, end_date: date | None = None) -> list[dict[str, Any]]:
         params = {
             "series_id": series_id,
             "api_key": self.api_key,

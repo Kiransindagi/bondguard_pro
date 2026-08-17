@@ -1,5 +1,7 @@
-from .types import LiquidityAssumptionConfig
 from decimal import Decimal
+
+from .types import LiquidityAssumptionConfig
+
 
 def estimate_bid_ask_spread_bps(bond_type: str, rating: str, config: LiquidityAssumptionConfig) -> float:
     t = bond_type.upper()

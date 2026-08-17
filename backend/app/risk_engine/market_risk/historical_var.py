@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def calculate_historical_var(pnl_vector: np.ndarray, confidence_level: float = 0.95) -> float:
     """
     Returns positive VaR currency loss magnitude.

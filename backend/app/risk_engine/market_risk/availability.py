@@ -1,11 +1,11 @@
-from enum import Enum
-from typing import List
 from datetime import date
+from enum import Enum
+
+import pandas as pd
+from app.risk_engine.historical import FactorAlignmentService
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import pandas as pd
 
-from app.risk_engine.historical import FactorAlignmentService
 
 class ModelStatus(str, Enum):
     FULL_FACTOR_MODEL = "FULL_FACTOR_MODEL"
@@ -21,8 +21,8 @@ class ModelAvailabilityResult(BaseModel):
     minimum_required_observations: int
     history_start_date: date | None
     history_end_date: date | None
-    included_factors: List[str]
-    excluded_factors: List[str]
+    included_factors: list[str]
+    excluded_factors: list[str]
     limitations: str
 
 

@@ -1,12 +1,15 @@
 from datetime import date
 from decimal import Decimal
-from sqlalchemy.orm import Session
 
-from app.db.models import User, Role, InAppNotification
-from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+from app.db.models import Breach, InAppNotification, Portfolio, RiskLimit, Role, User
+from app.notifications import (
+    NotificationDispatcher,
+    NotificationEventType,
+    NotificationSeverity,
+)
 from app.notifications.service import NotificationService
 from app.notifications.types import NotificationCreate
-from app.db.models import Breach, Portfolio, RiskLimit
+from sqlalchemy.orm import Session
 
 
 def test_notifications_dispatcher(db_session: Session):

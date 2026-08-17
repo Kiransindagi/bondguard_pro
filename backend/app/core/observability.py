@@ -1,17 +1,19 @@
-import logging
 import json
-import uuid
+import logging
 import time
-from contextvars import ContextVar
+import uuid
+from collections.abc import Callable
 from contextlib import contextmanager
-from typing import Optional, Any, Callable
+from contextvars import ContextVar
+from typing import Any
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
 # Context Variable for request ID tracking
-request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
-user_context_var: ContextVar[Optional[dict]] = ContextVar("user_context", default=None)
+request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
+user_context_var: ContextVar[dict | None] = ContextVar("user_context", default=None)
 
 class StructuredJsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:

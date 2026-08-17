@@ -1,7 +1,8 @@
-from app.db.database import SessionLocal
-from app.db.models import MarketPrice, YieldCurvePoint, Instrument, CreditSpread
-from sqlalchemy import func
 import logging
+
+from app.db.database import SessionLocal
+from app.db.models import CreditSpread, Instrument, MarketPrice, YieldCurvePoint
+from sqlalchemy import func
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -1,8 +1,10 @@
-from sqlalchemy.orm import Session
 from datetime import date
 from decimal import Decimal
+
 from app.risk_control.enums import MetricType
 from app.risk_control.types import NormalizedMetricResult
+from sqlalchemy.orm import Session
+
 
 class LiquidityRiskAdapter:
     def get_value(self, metric: MetricType, portfolio_id: int, valuation_date: date, db: Session) -> NormalizedMetricResult:
@@ -12,7 +14,9 @@ class LiquidityRiskAdapter:
             limitations = "Synthetic capacity assumptions remain explicitly labeled as proxy estimates."
             
             if metric == MetricType.LIQUIDITY_ADJUSTED_VAR:
-                from app.api.v1.liquidity_risk import calculate_liquidity_adjusted_var_internal
+                from app.api.v1.liquidity_risk import (
+                    calculate_liquidity_adjusted_var_internal,
+                )
                 var_data = calculate_liquidity_adjusted_var_internal(portfolio_id, db)
                 if var_data:
                     val = Decimal(var_data.liquidity_adjusted_var)

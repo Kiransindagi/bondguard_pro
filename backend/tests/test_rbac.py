@@ -1,12 +1,21 @@
-import pytest
 from datetime import date, datetime, timedelta, timezone
 
-from app.db.models import User, Role, Permission, RefreshToken, Portfolio, Breach, AuditEvent
+import pytest
 from app.auth.password import get_password_hash
 from app.auth.tokens import create_access_token
 from app.core.config import Settings
+from app.db.models import (
+    AuditEvent,
+    Breach,
+    Permission,
+    Portfolio,
+    RefreshToken,
+    Role,
+    User,
+)
 from app.risk_control.enums import BreachStatus
 from scripts.seed.seed_roles_permissions import seed_data as seed_security_data
+
 
 @pytest.fixture(scope="function")
 def seed_security(db_session):
@@ -221,7 +230,7 @@ def test_role_permissions_boundaries(client, test_users):
 
 # 14. Audit Event User Attribution
 def test_breach_acknowledgement_attribution(client, db_session, test_users):
-    from app.db.models import RiskLimit, RiskEvaluationRun
+    from app.db.models import RiskEvaluationRun, RiskLimit
     # Seed active breach
     p = db_session.query(Portfolio).first()
     limit = db_session.query(RiskLimit).first()

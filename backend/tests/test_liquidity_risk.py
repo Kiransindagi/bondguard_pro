@@ -1,22 +1,24 @@
 from decimal import Decimal
+
 from app.risk_engine.liquidity_risk import (
-    calculate_liquidity_score,
-    estimate_bid_ask_spread_bps,
-    calculate_liquidation_cost,
-    estimate_daily_capacity,
-    calculate_days_to_liquidate,
-    get_horizon_bucket,
     DEFAULT_ASSUMPTIONS,
-    LiquidityClass,
-    classify_liquidity,
     HorizonBucket,
-    calculate_concentration,
-    evaluate_limit,
     LimitStatus,
-    get_stressed_multipliers,
+    LiquidityClass,
     StressScenarioType,
-    calculate_liquidity_adjusted_var
+    calculate_concentration,
+    calculate_days_to_liquidate,
+    calculate_liquidation_cost,
+    calculate_liquidity_adjusted_var,
+    calculate_liquidity_score,
+    classify_liquidity,
+    estimate_bid_ask_spread_bps,
+    estimate_daily_capacity,
+    evaluate_limit,
+    get_horizon_bucket,
+    get_stressed_multipliers,
 )
+
 
 def test_liquidity_classification():
     assert classify_liquidity(85.0) == LiquidityClass.HIGH
@@ -38,9 +40,9 @@ def test_transaction_cost():
     bps = estimate_bid_ask_spread_bps("Corporate", "BB", DEFAULT_ASSUMPTIONS)
     assert bps == 50.0
 
-    cost = calculate_liquidation_cost(Decimal("1000000"), bps)
+    cost = calculate_liquidation_cost(Decimal(1000000), bps)
     # 1000000 * 50 / 20000 = 2500
-    assert cost == Decimal("2500")
+    assert cost == Decimal(2500)
 
 def test_days_to_liquidate():
     cap = estimate_daily_capacity("Corporate", "BB", DEFAULT_ASSUMPTIONS)

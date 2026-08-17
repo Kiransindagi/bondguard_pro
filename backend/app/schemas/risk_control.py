@@ -1,46 +1,48 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, List, Dict, Any
 from datetime import date, datetime
 from decimal import Decimal
-from app.risk_control.enums import MetricType, ScopeType, LimitDirection, LimitSeverity
+from typing import Any
+
+from app.risk_control.enums import LimitDirection, LimitSeverity, MetricType, ScopeType
+from pydantic import BaseModel, ConfigDict
+
 
 class RiskLimitCreate(BaseModel):
     code: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     metric_type: MetricType
     scope_type: ScopeType
-    scope_value: Optional[str] = None
+    scope_value: str | None = None
     direction: LimitDirection
-    warning_threshold: Optional[Decimal] = None
+    warning_threshold: Decimal | None = None
     limit_threshold: Decimal
     severity: LimitSeverity
-    currency: Optional[str] = None
+    currency: str | None = None
     effective_from: date
-    effective_to: Optional[date] = None
+    effective_to: date | None = None
 
 class RiskLimitUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    warning_threshold: Optional[Decimal] = None
-    limit_threshold: Optional[Decimal] = None
-    effective_to: Optional[date] = None
+    name: str | None = None
+    description: str | None = None
+    warning_threshold: Decimal | None = None
+    limit_threshold: Decimal | None = None
+    effective_to: date | None = None
 
 class RiskLimitResponse(BaseModel):
     id: int
     code: str
     name: str
-    description: Optional[str]
+    description: str | None
     metric_type: str
     scope_type: str
-    scope_value: Optional[str]
+    scope_value: str | None
     direction: str
-    warning_threshold: Optional[Decimal]
+    warning_threshold: Decimal | None
     limit_threshold: Decimal
     severity: str
-    currency: Optional[str]
+    currency: str | None
     effective_from: date
-    effective_to: Optional[date]
+    effective_to: date | None
     is_active: bool
 
 
@@ -53,38 +55,38 @@ class ReportMetadata(BaseModel):
     overall_status: str
 
 class PortfolioRiskSection(BaseModel):
-    total_market_value: Optional[float]
-    weighted_modified_duration: Optional[float]
-    total_dv01: Optional[float]
+    total_market_value: float | None
+    weighted_modified_duration: float | None
+    total_dv01: float | None
 
 class MarketRiskSection(BaseModel):
-    historical_var: Optional[float]
-    parametric_var: Optional[float]
-    expected_shortfall: Optional[float]
+    historical_var: float | None
+    parametric_var: float | None
+    expected_shortfall: float | None
     model_status: str
-    limitations: Optional[str]
+    limitations: str | None
 
 class StressRiskSection(BaseModel):
-    worst_scenario_name: Optional[str]
-    worst_scenario_code: Optional[str]
-    pnl: Optional[float]
-    loss_percent: Optional[float]
+    worst_scenario_name: str | None
+    worst_scenario_code: str | None
+    pnl: float | None
+    loss_percent: float | None
 
 class LiquidityRiskSection(BaseModel):
-    liquidity_score: Optional[float]
-    liquidation_cost: Optional[float]
-    liquidation_cost_bps: Optional[float]
-    weighted_days_to_liquidate: Optional[float]
-    max_days_to_liquidate: Optional[float]
+    liquidity_score: float | None
+    liquidation_cost: float | None
+    liquidation_cost_bps: float | None
+    weighted_days_to_liquidate: float | None
+    max_days_to_liquidate: float | None
     model_label: str
-    limitations: Optional[str]
+    limitations: str | None
 
 class ConcentrationSection(BaseModel):
-    largest_issuer: Optional[str]
-    largest_issuer_weight: Optional[float]
-    largest_sector: Optional[str]
-    largest_sector_weight: Optional[float]
-    max_single_position_weight: Optional[float]
+    largest_issuer: str | None
+    largest_issuer_weight: float | None
+    largest_sector: str | None
+    largest_sector_weight: float | None
+    max_single_position_weight: float | None
 
 class LimitSummary(BaseModel):
     evaluated_limit_count: int
@@ -95,14 +97,14 @@ class LimitSummary(BaseModel):
 
 class LimitResultItem(BaseModel):
     metric_type: str
-    observed_value: Optional[Decimal]
+    observed_value: Decimal | None
     threshold_value: Decimal
-    utilization_percent: Optional[float]
+    utilization_percent: float | None
     status: str
     unit: str
     calculation_source: str
     model_status: str
-    limitations: Optional[str]
+    limitations: str | None
 
 class BreachSummary(BaseModel):
     open_count: int
@@ -119,17 +121,17 @@ class ActiveBreachItem(BaseModel):
     threshold_value: Decimal
     breach_amount: Decimal
     opened_at: datetime
-    acknowledged_at: Optional[datetime]
-    assigned_to: Optional[str]
+    acknowledged_at: datetime | None
+    assigned_to: str | None
 
 class ModelGovernance(BaseModel):
-    active_models: List[str]
-    degraded_models: List[str]
-    proxy_models: List[str]
-    limitations: List[str]
+    active_models: list[str]
+    degraded_models: list[str]
+    proxy_models: list[str]
+    limitations: list[str]
 
 class RiskReportResponse(BaseModel):
-    portfolio: Dict[str, Any]
+    portfolio: dict[str, Any]
     report_metadata: ReportMetadata
     portfolio_risk: PortfolioRiskSection
     market_risk: MarketRiskSection
@@ -137,9 +139,9 @@ class RiskReportResponse(BaseModel):
     liquidity_risk: LiquidityRiskSection
     concentration: ConcentrationSection
     limit_summary: LimitSummary
-    limit_results: List[LimitResultItem]
+    limit_results: list[LimitResultItem]
     breach_summary: BreachSummary
-    active_breaches: List[ActiveBreachItem]
+    active_breaches: list[ActiveBreachItem]
     model_governance: ModelGovernance
 
     model_config = ConfigDict(from_attributes=True, json_encoders={Decimal: float})

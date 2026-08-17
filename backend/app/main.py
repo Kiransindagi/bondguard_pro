@@ -1,9 +1,30 @@
+import logging
+
+from app.api.v1 import (
+    admin,
+    advanced_risk,
+    analytics,
+    auth,
+    bonds,
+    data_pipeline,
+    data_quality,
+    endpoints,
+    liquidity_risk,
+    market,
+    market_risk,
+    notifications,
+    portfolios,
+    reporting,
+    risk,
+    risk_control,
+    scenario_lab,
+    stress_testing,
+    transactions,
+)
+from app.core.config import settings
+from app.core.observability import CorrelationIdMiddleware, setup_structured_logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.api.v1 import endpoints, market, portfolios, bonds, transactions, risk, market_risk, stress_testing, liquidity_risk, risk_control, reporting, data_pipeline, data_quality, analytics, auth, admin, notifications, scenario_lab, advanced_risk
-from app.core.observability import CorrelationIdMiddleware, setup_structured_logging
-import logging
 
 setup_structured_logging()
 logger = logging.getLogger(__name__)
@@ -60,7 +81,8 @@ app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifica
 app.include_router(scenario_lab.router, prefix=f"{settings.API_V1_STR}/scenario-lab", tags=["scenario_lab"])
 app.include_router(advanced_risk.router, prefix=f"{settings.API_V1_STR}/advanced-risk", tags=["advanced_risk"])
 
-from app.risk_control import setup_risk_control  # noqa: E402
+from app.risk_control import setup_risk_control
+
 setup_risk_control()
 
 @app.get("/")

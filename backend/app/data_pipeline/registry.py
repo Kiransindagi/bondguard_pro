@@ -1,6 +1,6 @@
-from typing import Dict, Any, List
+from typing import Any
 
-DATASET_REGISTRY: Dict[str, Dict[str, Any]] = {
+DATASET_REGISTRY: dict[str, dict[str, Any]] = {
     # Yield Curve Points (FRED)
     "DGS2": {
         "dataset_key": "DGS2",
@@ -140,8 +140,8 @@ DATASET_REGISTRY: Dict[str, Dict[str, Any]] = {
     }
 }
 
-def get_active_datasets() -> List[Dict[str, Any]]:
+def get_active_datasets() -> list[dict[str, Any]]:
     return [meta for meta in DATASET_REGISTRY.values() if meta["is_active"]]
 
-def get_dataset_metadata(dataset_key: str) -> Dict[str, Any]:
+def get_dataset_metadata(dataset_key: str) -> dict[str, Any]:
     return DATASET_REGISTRY.get(dataset_key)

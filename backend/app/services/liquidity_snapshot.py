@@ -1,20 +1,25 @@
 import logging
-from sqlalchemy.orm import Session
 from datetime import date
-from typing import Optional
 from decimal import Decimal
 
-from app.db.models import Portfolio, Position, LiquidityAssumption, LiquiditySnapshot, LiquidityPositionResult
+from app.db.models import (
+    LiquidityAssumption,
+    LiquidityPositionResult,
+    LiquiditySnapshot,
+    Portfolio,
+    Position,
+)
 from app.risk_engine.liquidity_risk import (
-    calculate_position_liquidity,
+    LiquidityAssumptionConfig,
     aggregate_portfolio_liquidity,
-    LiquidityAssumptionConfig
+    calculate_position_liquidity,
 )
 from app.risk_engine.liquidity_risk.types import StressScenarioType
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-def generate_liquidity_snapshot(db: Session, portfolio_id: int, valuation_date: date, assumption_id: Optional[int] = None) -> LiquiditySnapshot:
+def generate_liquidity_snapshot(db: Session, portfolio_id: int, valuation_date: date, assumption_id: int | None = None) -> LiquiditySnapshot:
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
     if not portfolio:
         raise ValueError("Portfolio not found")
@@ -31,7 +36,7 @@ def generate_liquidity_snapshot(db: Session, portfolio_id: int, valuation_date: 
 
     positions = db.query(Position).filter(Position.portfolio_id == portfolio_id).all()
 
-    total_mv = sum(p.market_value or Decimal('0') for p in positions)
+    total_mv = sum(p.market_value or Decimal(0) for p in positions)
     
     pos_results_db = []
     pos_results_calc = []

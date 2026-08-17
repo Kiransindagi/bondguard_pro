@@ -1,9 +1,10 @@
-from typing import Dict
 from decimal import Decimal
+
 from .exceptions import InvalidInputError
 
+
 class YieldCurve:
-    def __init__(self, points: Dict[float, Decimal]):
+    def __init__(self, points: dict[float, Decimal]):
         """
         Initialize with points mapping tenor in years to decimal yield.
         Example: {2.0: Decimal('0.0425'), 10.0: Decimal('0.0450')}

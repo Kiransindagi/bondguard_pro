@@ -2,6 +2,7 @@ from app.db.database import SessionLocal
 from app.db.models import LiquidityAssumption
 from app.risk_engine.liquidity_risk import DEFAULT_ASSUMPTIONS
 
+
 def seed_assumptions(db=None):
     is_local = False
     if db is None:

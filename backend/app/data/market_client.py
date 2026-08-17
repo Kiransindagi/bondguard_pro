@@ -1,11 +1,13 @@
-import yfinance as yf
 from datetime import date
-from typing import List, Dict, Any
-from app.data.base_provider import MarketDataProvider
+from typing import Any
+
 import pandas as pd
+import yfinance as yf
+from app.data.base_provider import MarketDataProvider
+
 
 class YFinanceProvider(MarketDataProvider):
-    def fetch_historical_prices(self, symbol: str, start_date: date = None, end_date: date = None) -> List[Dict[str, Any]]:
+    def fetch_historical_prices(self, symbol: str, start_date: date | None = None, end_date: date | None = None) -> list[dict[str, Any]]:
         ticker = yf.Ticker(symbol)
         
         kwargs = {}

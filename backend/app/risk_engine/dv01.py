@@ -1,9 +1,10 @@
-from typing import List
 from decimal import Decimal
+
 from .types import CashFlow
 from .valuation import dirty_price_from_ytm
 
-def calculate_dv01(cashflows: List[CashFlow], ytm: Decimal, frequency: str, dirty_price: Decimal, face_value: Decimal, quantity: Decimal = Decimal('1')) -> Decimal:
+
+def calculate_dv01(cashflows: list[CashFlow], ytm: Decimal, frequency: str, dirty_price: Decimal, face_value: Decimal, quantity: Decimal = Decimal(1)) -> Decimal:
     """
     Calculate DV01 as the approximate currency price change for a one basis-point parallel yield move.
     DV01 is reported as a positive loss magnitude for a +1 bp yield increase.
@@ -14,7 +15,7 @@ def calculate_dv01(cashflows: List[CashFlow], ytm: Decimal, frequency: str, dirt
     Position DV01 is scaled using quantity * face_value / 100
     """
     if not cashflows:
-        return Decimal('0')
+        return Decimal(0)
 
     bp = Decimal('0.0001')
     

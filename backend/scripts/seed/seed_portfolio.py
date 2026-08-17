@@ -1,8 +1,9 @@
-from app.db.database import SessionLocal
-from app.db.models import Portfolio, Bond, Transaction
+import logging
 from datetime import date
 from decimal import Decimal
-import logging
+
+from app.db.database import SessionLocal
+from app.db.models import Bond, Portfolio, Transaction
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -114,8 +115,8 @@ def seed_data(db=None):
         logger.info(f"Upserted {len(bonds)} synthetic bonds.")
 
         # 3. Get or Create Transactions (which creates positions)
-        from app.services.position import PositionService
         from app.schemas.transaction import TransactionCreate
+        from app.services.position import PositionService
         
         pos_service = PositionService(db)
 
@@ -131,10 +132,10 @@ def seed_data(db=None):
                     transaction_type="BUY",
                     trade_date=date(2024, 1, 15),
                     settlement_date=date(2024, 1, 16),
-                    quantity=Decimal('10000'),
+                    quantity=Decimal(10000),
                     clean_price=Decimal('99.50'),
                     accrued_interest=Decimal('0.0'),
-                    total_consideration=Decimal('10000') * Decimal('100.00') * Decimal('99.50') / Decimal('100')
+                    total_consideration=Decimal(10000) * Decimal('100.00') * Decimal('99.50') / Decimal(100)
                 ),
                 # Buy IG Corporate
                 TransactionCreate(
@@ -143,10 +144,10 @@ def seed_data(db=None):
                     transaction_type="BUY",
                     trade_date=date(2024, 1, 20),
                     settlement_date=date(2024, 1, 22),
-                    quantity=Decimal('5000'),
+                    quantity=Decimal(5000),
                     clean_price=Decimal('95.20'),
                     accrued_interest=Decimal('0.0'),
-                    total_consideration=Decimal('5000') * Decimal('100.00') * Decimal('95.20') / Decimal('100')
+                    total_consideration=Decimal(5000) * Decimal('100.00') * Decimal('95.20') / Decimal(100)
                 ),
                 # Buy HY Corporate
                 TransactionCreate(
@@ -155,10 +156,10 @@ def seed_data(db=None):
                     transaction_type="BUY",
                     trade_date=date(2024, 2, 1),
                     settlement_date=date(2024, 2, 3),
-                    quantity=Decimal('8000'),
+                    quantity=Decimal(8000),
                     clean_price=Decimal('88.75'),
                     accrued_interest=Decimal('0.0'),
-                    total_consideration=Decimal('8000') * Decimal('100.00') * Decimal('88.75') / Decimal('100')
+                    total_consideration=Decimal(8000) * Decimal('100.00') * Decimal('88.75') / Decimal(100)
                 ),
                 # Buy EM Debt
                 TransactionCreate(
@@ -167,10 +168,10 @@ def seed_data(db=None):
                     transaction_type="BUY",
                     trade_date=date(2024, 2, 10),
                     settlement_date=date(2024, 2, 12),
-                    quantity=Decimal('4000'),
+                    quantity=Decimal(4000),
                     clean_price=Decimal('102.10'),
                     accrued_interest=Decimal('0.0'),
-                    total_consideration=Decimal('4000') * Decimal('100.00') * Decimal('102.10') / Decimal('100')
+                    total_consideration=Decimal(4000) * Decimal('100.00') * Decimal('102.10') / Decimal(100)
                 )
             ]
 

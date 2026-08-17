@@ -1,5 +1,6 @@
 from .types import LiquidityAssumptionConfig
 
+
 def _get_type_score(bond_type: str) -> float:
     t = bond_type.upper()
     if 'TREASURY' in t or 'GOVERNMENT' in t:

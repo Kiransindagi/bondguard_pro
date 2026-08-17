@@ -1,12 +1,11 @@
-from decimal import Decimal
 from datetime import date
-from typing import Dict
-from sqlalchemy.orm import Session
+from decimal import Decimal
 
 from app.db.models import Bond
-from app.risk_engine.types import BondRiskInput
-from app.risk_engine.position_risk import calculate_position_risk
 from app.risk_engine.curve import YieldCurve
+from app.risk_engine.position_risk import calculate_position_risk
+from app.risk_engine.types import BondRiskInput
+from sqlalchemy.orm import Session
 
 TENOR_NODES = {
     "2Y": 2.0,
@@ -15,7 +14,7 @@ TENOR_NODES = {
     "30Y": 30.0
 }
 
-def calculate_tenor_weights(maturity_years: float) -> Dict[str, float]:
+def calculate_tenor_weights(maturity_years: float) -> dict[str, float]:
     """
     Linearly interpolate weights for the key tenors 2Y, 5Y, 10Y, 30Y.
     The sum of weights equals 1.0.
@@ -46,7 +45,7 @@ class AdvancedAnalyticsCalculator:
         valuation_date: date,
         clean_price: Decimal,
         quantity: Decimal
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Calculate Key Rate Duration (KRD) for tenors 2Y, 5Y, 10Y, 30Y.
         """
@@ -82,7 +81,7 @@ class AdvancedAnalyticsCalculator:
         valuation_date: date,
         clean_price: Decimal,
         quantity: Decimal
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Calculate tenor-bucketed DV01 values.
         """
@@ -117,7 +116,7 @@ class AdvancedAnalyticsCalculator:
         valuation_date: date,
         clean_price: Decimal,
         quantity: Decimal
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Calculate Spread Duration and CS01.
         Treasuries have zero spread risk.
@@ -171,7 +170,7 @@ class CarryRollDownCalculator:
         clean_price: Decimal,
         quantity: Decimal,
         horizon_months: int = 1
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Calculate coupon carry, yield carry, roll-down and projected return for a horizon in months.
         """
@@ -229,7 +228,7 @@ class PnLExplainCalculator:
         rate_shock_bps: float,
         spread_shock_bps: float,
         actual_pnl: float
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Decompose bond return into explained components (carry, rate, spread, convexity) and residual.
         """

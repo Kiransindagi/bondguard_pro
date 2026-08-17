@@ -1,7 +1,9 @@
-import pandas as pd
-from typing import Dict, Any
+from typing import Any
 
-def calculate_rolling_volatility(shocks: pd.DataFrame, window: int = 20) -> Dict[str, Any]:
+import pandas as pd
+
+
+def calculate_rolling_volatility(shocks: pd.DataFrame, window: int = 20) -> dict[str, Any]:
     # We compute rolling standard deviation (volatility) of shocks
     # Since rate/spread shocks are daily bps, vol is daily bps vol
     vol = shocks.rolling(window=window).std()

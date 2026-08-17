@@ -1,6 +1,7 @@
+from app.db.models import Bond
 from app.risk_engine.stress_testing.curve_shocks import interpolate_rate_shock
 from app.risk_engine.stress_testing.spread_shocks import resolve_spread_shock
-from app.db.models import Bond
+
 
 def test_interpolate_rate_shock_exact_points():
     assert interpolate_rate_shock(2.0, 10, 20, 30, 40) == 10.0

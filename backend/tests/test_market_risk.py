@@ -1,11 +1,12 @@
 import numpy as np
 from app.risk_engine.market_risk import (
-    calculate_historical_var,
-    calculate_expected_shortfall,
-    calculate_parametric_var,
     calculate_component_var,
-    calculate_marginal_var
+    calculate_expected_shortfall,
+    calculate_historical_var,
+    calculate_marginal_var,
+    calculate_parametric_var,
 )
+
 
 def test_historical_var():
     pnl = np.array([-100, -50, 0, 50, 100])

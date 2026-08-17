@@ -1,13 +1,13 @@
+import logging
 from datetime import date
 from decimal import Decimal
-from sqlalchemy.orm import Session
-import logging
 
 from app.db.models import Portfolio
 from app.risk_engine.position_risk import calculate_position_risk
-from app.risk_engine.types import BondRiskInput
 from app.risk_engine.stress_testing.scenario_pricing import calculate_scenario_pricing
 from app.risk_engine.stress_testing.types import CalculationMethod
+from app.risk_engine.types import BondRiskInput
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +35,8 @@ class ScenarioExecutionService:
         ig_spread = scenario_shocks.get("ig_spread_shock_bps", 0)
         hy_spread = scenario_shocks.get("hy_spread_shock_bps", 0)
 
-        total_base_mv = Decimal('0')
-        total_stressed_mv = Decimal('0')
+        total_base_mv = Decimal(0)
+        total_stressed_mv = Decimal(0)
         position_details = []
 
         for pos in portfolio.positions:

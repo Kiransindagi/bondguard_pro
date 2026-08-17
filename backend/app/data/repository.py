@@ -1,14 +1,23 @@
-from typing import List, Dict, Any
-from sqlalchemy.orm import Session
-from sqlalchemy.dialects.postgresql import insert
-from app.db.models import Instrument, MarketPrice, YieldCurvePoint, CreditSpread, MacroObservation, DataIngestionRun
 from datetime import datetime, timezone
+from typing import Any
+
+from app.db.models import (
+    CreditSpread,
+    DataIngestionRun,
+    Instrument,
+    MacroObservation,
+    MarketPrice,
+    YieldCurvePoint,
+)
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
+
 
 class DataRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def upsert_market_prices(self, instrument_id: int, records: List[Dict[str, Any]]) -> int:
+    def upsert_market_prices(self, instrument_id: int, records: list[dict[str, Any]]) -> int:
         if not records:
             return 0
             
@@ -32,7 +41,7 @@ class DataRepository:
         self.db.commit()
         return result.rowcount
 
-    def upsert_yield_curve_points(self, records: List[Dict[str, Any]]) -> int:
+    def upsert_yield_curve_points(self, records: list[dict[str, Any]]) -> int:
         if not records:
             return 0
             
@@ -49,7 +58,7 @@ class DataRepository:
         self.db.commit()
         return result.rowcount
 
-    def upsert_credit_spreads(self, records: List[Dict[str, Any]]) -> int:
+    def upsert_credit_spreads(self, records: list[dict[str, Any]]) -> int:
         if not records:
             return 0
             
@@ -66,7 +75,7 @@ class DataRepository:
         self.db.commit()
         return result.rowcount
 
-    def upsert_macro_observations(self, records: List[Dict[str, Any]]) -> int:
+    def upsert_macro_observations(self, records: list[dict[str, Any]]) -> int:
         if not records:
             return 0
             
@@ -109,7 +118,7 @@ class DataRepository:
         self.db.refresh(run)
         return run
 
-    def finish_ingestion_run(self, run: DataIngestionRun, status: str, fetched: int = 0, inserted: int = 0, error_message: str = None):
+    def finish_ingestion_run(self, run: DataIngestionRun, status: str, fetched: int = 0, inserted: int = 0, error_message: str | None = None):
         run.status = status
         run.completed_at = datetime.now(timezone.utc)
         run.records_fetched = fetched

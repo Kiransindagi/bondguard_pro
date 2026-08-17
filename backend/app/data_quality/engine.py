@@ -1,15 +1,20 @@
 import logging
 import math
 from datetime import date, datetime, timezone
-from typing import List, Any, Optional
-from sqlalchemy.orm import Session
-from app.core.observability import log_duration
+from typing import Any
 
-from app.db.models import (
-    DataQualityRun, DataQualityResult, YieldCurvePoint, 
-    CreditSpread, MacroObservation, MarketPrice, Instrument
-)
+from app.core.observability import log_duration
 from app.data_pipeline.registry import get_active_datasets, get_dataset_metadata
+from app.db.models import (
+    CreditSpread,
+    DataQualityResult,
+    DataQualityRun,
+    Instrument,
+    MacroObservation,
+    MarketPrice,
+    YieldCurvePoint,
+)
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +22,7 @@ class DataQualityEngine:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_observations_for_dataset(self, dataset_key: str) -> List[Any]:
+    def get_observations_for_dataset(self, dataset_key: str) -> list[Any]:
         meta = get_dataset_metadata(dataset_key)
         if not meta:
             return []
@@ -45,7 +50,7 @@ class DataQualityEngine:
             ).order_by(MarketPrice.observation_date.asc()).all()
         return []
 
-    def get_value_from_obs(self, obs: Any, category: str) -> Optional[float]:
+    def get_value_from_obs(self, obs: Any, category: str) -> float | None:
         if category == "Yield_Curve":
             return obs.yield_percent
         elif category == "Credit_Spreads":
@@ -114,9 +119,7 @@ class DataQualityEngine:
             if v is None or math.isnan(v):
                 has_null = True
             else:
-                if category in ["ETF_Market_Data", "Credit_Spreads"] and v <= 0:
-                    has_invalid_neg = True
-                elif category in ["Yield_Curve", "Macro"] and v < -5.0:
+                if category in ["ETF_Market_Data", "Credit_Spreads"] and v <= 0 or category in ["Yield_Curve", "Macro"] and v < -5.0:
                     has_invalid_neg = True
 
         # Continuity check (Business days gaps)
@@ -180,7 +183,7 @@ class DataQualityEngine:
             return "WARNING"
         return "PASS"
 
-    def save_result(self, run_id: int, key: str, check_name: str, status: str, observed: Optional[float], expected: Optional[float], message: str):
+    def save_result(self, run_id: int, key: str, check_name: str, status: str, observed: float | None, expected: float | None, message: str):
         res = DataQualityResult(
             data_quality_run_id=run_id,
             dataset_key=key,
@@ -193,7 +196,7 @@ class DataQualityEngine:
         self.db.add(res)
         self.db.commit()
 
-    def run_quality_suite(self, pipeline_run_id: Optional[int] = None) -> DataQualityRun:
+    def run_quality_suite(self, pipeline_run_id: int | None = None) -> DataQualityRun:
         with log_duration("data_quality_run", pipeline_run_id=pipeline_run_id):
             active_datasets = get_active_datasets()
 
@@ -239,7 +242,11 @@ class DataQualityEngine:
             self.db.refresh(quality_run)
 
             # Dispatch notification if data quality checks fail
-            from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+            from app.notifications import (
+                NotificationDispatcher,
+                NotificationEventType,
+                NotificationSeverity,
+            )
             if quality_run.status == "FAIL":
                 NotificationDispatcher.dispatch_event(
                     db=self.db,

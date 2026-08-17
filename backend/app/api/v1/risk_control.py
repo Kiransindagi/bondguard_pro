@@ -1,23 +1,43 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 from datetime import date
-from typing import List
-
-from app.db.database import get_db
-from app.db.models import Portfolio, RiskEvaluationRun, Breach, AuditEvent, RiskLimitResult, RiskLimit
-from app.risk_control.evaluator import LimitEvaluator
-from app.risk_control.enums import BreachStatus
-from app.risk_control.audit_service import AuditService
-from app.schemas.risk_control import RiskLimitCreate, RiskLimitUpdate, RiskLimitResponse, RiskReportResponse
-from app.risk_control.reporting_service import ReportingService
 
 from app.auth.dependencies import PermissionChecker
-from app.auth.permissions import RISK_READ, RISK_EXECUTE, BREACH_ACKNOWLEDGE, LIMIT_MANAGE, REPORT_GENERATE, AUDIT_READ, BREACH_READ, BREACH_ASSIGN, BREACH_REVIEW, BREACH_RESOLVE
+from app.auth.permissions import (
+    AUDIT_READ,
+    BREACH_ACKNOWLEDGE,
+    BREACH_ASSIGN,
+    BREACH_READ,
+    BREACH_RESOLVE,
+    LIMIT_MANAGE,
+    REPORT_GENERATE,
+    RISK_EXECUTE,
+    RISK_READ,
+)
+from app.db.database import get_db
+from app.db.models import (
+    AuditEvent,
+    Breach,
+    Portfolio,
+    RiskEvaluationRun,
+    RiskLimit,
+    RiskLimitResult,
+)
+from app.risk_control.audit_service import AuditService
+from app.risk_control.enums import BreachStatus
+from app.risk_control.evaluator import LimitEvaluator
+from app.risk_control.reporting_service import ReportingService
+from app.schemas.risk_control import (
+    RiskLimitCreate,
+    RiskLimitResponse,
+    RiskLimitUpdate,
+    RiskReportResponse,
+)
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 @router.post("/portfolios/{portfolio_id}/evaluate", dependencies=[Depends(PermissionChecker(RISK_EXECUTE))])
-def evaluate_portfolio_limits(portfolio_id: int, valuation_date: date = None, db: Session = Depends(get_db)):
+def evaluate_portfolio_limits(portfolio_id: int, valuation_date: date | None = None, db: Session = Depends(get_db)):
     if not valuation_date:
         valuation_date = date.today()
         
@@ -105,7 +125,11 @@ def acknowledge_breach(breach_id: int, note: str = Query(None), db: Session = De
     db.refresh(breach)
 
     # Dispatch notification
-    from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+    from app.notifications import (
+        NotificationDispatcher,
+        NotificationEventType,
+        NotificationSeverity,
+    )
     NotificationDispatcher.dispatch_event(
         db=db,
         event_type=NotificationEventType.BREACH_ACKNOWLEDGED,
@@ -119,7 +143,7 @@ def acknowledge_breach(breach_id: int, note: str = Query(None), db: Session = De
     return breach
 
 @router.get("/audit-events", dependencies=[Depends(PermissionChecker(AUDIT_READ))])
-def get_audit_events(entity_type: str = None, entity_id: int = None, limit: int = 50, db: Session = Depends(get_db)):
+def get_audit_events(entity_type: str | None = None, entity_id: int | None = None, limit: int = 50, db: Session = Depends(get_db)):
     query = db.query(AuditEvent)
     if entity_type:
         query = query.filter(AuditEvent.entity_type == entity_type)
@@ -128,7 +152,7 @@ def get_audit_events(entity_type: str = None, entity_id: int = None, limit: int 
         
     return query.order_by(AuditEvent.id.desc()).limit(limit).all()
 
-@router.get("/limits", response_model=List[RiskLimitResponse], dependencies=[Depends(PermissionChecker(RISK_READ))])
+@router.get("/limits", response_model=list[RiskLimitResponse], dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_limits(db: Session = Depends(get_db)):
     from app.db.models import RiskLimit
     return db.query(RiskLimit).all()
@@ -225,7 +249,7 @@ def get_breach_workflow_details(breach_id: int, db: Session = Depends(get_db)):
     
     from datetime import datetime, timezone
     is_overdue = False
-    if breach.status in ["OPEN", "ACKNOWLEDGED", "UNDER_REVIEW"] and breach.sla_deadline:
+    if breach.status in [BreachStatus.OPEN.value, BreachStatus.ACKNOWLEDGED.value] and breach.sla_deadline:
         now = datetime.now(timezone.utc)
         deadline = breach.sla_deadline
         if deadline.tzinfo is None:
@@ -263,31 +287,6 @@ def assign_breach(breach_id: int, user_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(breach)
     return breach
-
-
-@router.post("/breaches/{breach_id}/review", dependencies=[Depends(PermissionChecker(BREACH_REVIEW))])
-def review_breach(breach_id: int, notes: str = Query(None), db: Session = Depends(get_db)):
-    breach = db.query(Breach).filter(Breach.id == breach_id).first()
-    if not breach:
-        raise HTTPException(status_code=404, detail="Breach not found")
-        
-    prev_state = {"status": breach.status, "review_notes": breach.review_notes}
-    
-    from datetime import datetime
-    breach.status = "UNDER_REVIEW"
-    breach.under_review_at = datetime.utcnow()
-    breach.review_notes = notes
-    
-    AuditService.append_event(
-        db, "BREACH_UNDER_REVIEW", "BREACH", breach.id, "UPDATE",
-        previous_state=prev_state,
-        new_state={"status": breach.status, "review_notes": notes}
-    )
-    db.commit()
-    db.refresh(breach)
-    return breach
-
-
 @router.post("/breaches/{breach_id}/resolve", dependencies=[Depends(PermissionChecker(BREACH_RESOLVE))])
 def resolve_breach(breach_id: int, notes: str = Query(None), db: Session = Depends(get_db)):
     breach = db.query(Breach).filter(Breach.id == breach_id).first()
@@ -310,7 +309,11 @@ def resolve_breach(breach_id: int, notes: str = Query(None), db: Session = Depen
     db.refresh(breach)
     
     # Dispatch resolved notification
-    from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+    from app.notifications import (
+        NotificationDispatcher,
+        NotificationEventType,
+        NotificationSeverity,
+    )
     NotificationDispatcher.dispatch_event(
         db=db,
         event_type=NotificationEventType.BREACH_RESOLVED,

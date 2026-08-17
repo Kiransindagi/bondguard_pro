@@ -1,12 +1,18 @@
-from sqlalchemy.orm import Session
 from datetime import date
 from decimal import Decimal
+
 from app.risk_control.enums import MetricType
 from app.risk_control.types import NormalizedMetricResult
+from sqlalchemy.orm import Session
+
 
 class MarketRiskAdapter:
     def get_value(self, metric: MetricType, portfolio_id: int, valuation_date: date, db: Session) -> NormalizedMetricResult:
-        from app.api.v1.market_risk import get_historical_var, get_parametric_var, get_expected_shortfall
+        from app.api.v1.market_risk import (
+            get_expected_shortfall,
+            get_historical_var,
+            get_parametric_var,
+        )
         
         try:
             val = None

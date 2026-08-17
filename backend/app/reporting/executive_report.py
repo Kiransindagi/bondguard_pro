@@ -1,6 +1,8 @@
-from sqlalchemy.orm import Session
 from datetime import date
-from app.db.models import PortfolioRiskSnapshot, Portfolio
+
+from app.db.models import Portfolio, PortfolioRiskSnapshot
+from sqlalchemy.orm import Session
+
 
 class ExecutiveReportService:
     @staticmethod

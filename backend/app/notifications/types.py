@@ -1,6 +1,7 @@
 from enum import Enum
+
 from pydantic import BaseModel
-from typing import Optional
+
 
 class NotificationEventType(str, Enum):
     LIMIT_BREACH = "LIMIT_BREACH"
@@ -27,5 +28,5 @@ class NotificationCreate(BaseModel):
     severity: NotificationSeverity
     title: str
     message: str
-    entity_type: Optional[str] = None
-    entity_id: Optional[int] = None
+    entity_type: str | None = None
+    entity_id: int | None = None

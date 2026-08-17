@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def interpolate_rate_shock(
     tenor_years: float,
     rate_2y_bps: float,

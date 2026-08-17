@@ -1,8 +1,10 @@
-from sqlalchemy.orm import Session
-from app.db.models import AuditEvent
 import json
-from decimal import Decimal
 from datetime import date, datetime
+from decimal import Decimal
+
+from app.db.models import AuditEvent
+from sqlalchemy.orm import Session
+
 
 class AuditJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -21,13 +23,13 @@ class AuditService:
         entity_id: int, 
         action: str, 
         actor: str = "SYSTEM",
-        actor_user_id: int = None,
-        request_id: str = None,
-        previous_state: dict = None,
-        new_state: dict = None,
-        metadata: dict = None
+        actor_user_id: int | None = None,
+        request_id: str | None = None,
+        previous_state: dict | None = None,
+        new_state: dict | None = None,
+        metadata: dict | None = None
     ):
-        from app.core.observability import user_context_var, request_id_var
+        from app.core.observability import request_id_var, user_context_var
         
         # Auto-extract request ID if not provided
         final_request_id = request_id or request_id_var.get()

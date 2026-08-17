@@ -1,6 +1,8 @@
-from scripts.seed.seed_portfolio import seed_data
-from app.db.models import Bond, Portfolio, Transaction
 from datetime import date
+
+from app.db.models import Bond, Portfolio, Transaction
+from scripts.seed.seed_portfolio import seed_data
+
 
 def test_seed_script_idempotency_and_treasury_maturity(db_session):
     # First run

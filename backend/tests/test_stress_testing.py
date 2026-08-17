@@ -1,5 +1,6 @@
 import uuid
 
+
 def test_list_stress_scenarios(client):
     response = client.get("/api/v1/stress-scenarios")
     assert response.status_code == 200

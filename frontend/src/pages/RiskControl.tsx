@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getPortfolioRiskReport, evaluatePortfolioRiskControl,
   acknowledgeBreach, getBreachWorkflow, assignBreach,
-  reviewBreach, resolveBreach, getAssignableUsers,
+  resolveBreach, getAssignableUsers,
 } from '../api/client';
 import { usePortfolio } from '../auth/PortfolioContext';
 import { PageHeader, MetricCard, DataPanel, SectionHeader, LoadingState, ErrorState, EmptyState, TablePanel, Th, Td, Btn, StatusBadge, KVRow } from '../components/ui';
@@ -52,11 +52,6 @@ export const RiskControl = () => {
   const assignMutation = useMutation({
     mutationFn: ({ id, userId }: { id: number; userId: number }) => assignBreach(id, userId),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['breachWorkflow', selectedBreachId] }); queryClient.invalidateQueries({ queryKey: ['riskReport', portfolioId] }); },
-  });
-
-  const reviewMutation = useMutation({
-    mutationFn: ({ id, notes }: { id: number; notes: string }) => reviewBreach(id, notes),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['breachWorkflow', selectedBreachId] }); queryClient.invalidateQueries({ queryKey: ['riskReport', portfolioId] }); setWorkflowNotes(''); },
   });
 
   const resolveMutation = useMutation({
@@ -222,12 +217,11 @@ export const RiskControl = () => {
               {workflowData.breach.assigned_to && <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>Currently: <strong>{workflowData.breach.assigned_to}</strong></div>}
             </div>
 
-            {/* Review / Resolve */}
+            {/* Resolve */}
             <div>
               <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '6px' }}>Notes</label>
-              <textarea value={workflowNotes} onChange={e => setWorkflowNotes(e.target.value)} placeholder="Review or resolution notes..." style={{ ...inputStyle, height: '64px', resize: 'vertical', marginBottom: '8px' }} />
+              <textarea value={workflowNotes} onChange={e => setWorkflowNotes(e.target.value)} placeholder="Resolution note..." style={{ ...inputStyle, height: '64px', resize: 'vertical', marginBottom: '8px' }} />
               <div style={{ display: 'flex', gap: '6px' }}>
-                <Btn variant="secondary" size="sm" style={{ flex: 1 }} onClick={() => reviewMutation.mutate({ id: workflowData.breach.id, notes: workflowNotes })} disabled={reviewMutation.isPending || !workflowNotes}>Under Review</Btn>
                 <Btn variant="primary" size="sm" style={{ flex: 1 }} onClick={() => resolveMutation.mutate({ id: workflowData.breach.id, notes: workflowNotes })} disabled={resolveMutation.isPending || !workflowNotes}>Resolve</Btn>
               </div>
             </div>
@@ -240,7 +234,6 @@ export const RiskControl = () => {
                   <div key={h.id} style={{ borderLeft: '2px solid var(--accent-border)', paddingLeft: '10px', fontSize: '11px' }}>
                     <div style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{h.event_type} - {h.action}</div>
                     <div style={{ color: 'var(--text-muted)', fontSize: '10px' }}>by {h.actor} at {new Date(h.timestamp).toLocaleString()}</div>
-                    {h.new_state?.review_notes && <div style={{ color: 'var(--text-warning)', fontStyle: 'italic', fontSize: '10px' }}>Note: {h.new_state.review_notes}</div>}
                     {h.new_state?.resolution_note && <div style={{ color: 'var(--text-positive)', fontStyle: 'italic', fontSize: '10px' }}>Resolved: {h.new_state.resolution_note}</div>}
                   </div>
                 ))}

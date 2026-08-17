@@ -1,14 +1,21 @@
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
 from datetime import date, datetime
-from app.risk_engine.liquidity_risk.types import LiquidityClass, HorizonBucket, LimitStatus, StressScenarioType
+from typing import Any
+
+from app.risk_engine.liquidity_risk.types import (
+    HorizonBucket,
+    LimitStatus,
+    LiquidityClass,
+    StressScenarioType,
+)
+from pydantic import BaseModel
+
 
 class LiquidityAssumptionCreate(BaseModel):
     name: str
     version: str
-    description: Optional[str] = None
+    description: str | None = None
     methodology: str
-    configuration_json: Dict[str, Any]
+    configuration_json: dict[str, Any]
     is_active: bool = True
 
 class LiquidityAssumptionResponse(LiquidityAssumptionCreate):
@@ -24,9 +31,9 @@ class PositionLiquidityResponse(BaseModel):
     bond_id: int
     bond_name: str
     issuer: str
-    rating: Optional[str] = None
-    sector: Optional[str] = None
-    country: Optional[str] = None
+    rating: str | None = None
+    sector: str | None = None
+    country: str | None = None
     maturity_date: date
     market_value: float
 
@@ -77,9 +84,9 @@ class PortfolioLiquidityResponse(BaseModel):
     low_liquidity_weight: float
     very_low_liquidity_weight: float
 
-    largest_illiquid_position: Optional[str] = None
+    largest_illiquid_position: str | None = None
 
-    liquidation_horizon_distribution: List[HorizonDistribution]
+    liquidation_horizon_distribution: list[HorizonDistribution]
 
     methodology: str
     assumption_version: str
@@ -94,7 +101,7 @@ class LiquiditySnapshotResponse(PortfolioLiquidityResponse):
     
 class LiquidityStressRequest(BaseModel):
     scenario: StressScenarioType
-    assumption_id: Optional[int] = None
+    assumption_id: int | None = None
 
 class LiquidityStressResponse(BaseModel):
     scenario: StressScenarioType
@@ -113,7 +120,7 @@ class ConcentrationBreakdownItem(BaseModel):
 
 class ConcentrationSummaryResponse(BaseModel):
     dimension: str
-    breakdown: List[ConcentrationBreakdownItem]
+    breakdown: list[ConcentrationBreakdownItem]
     hhi: float
     hhi_scaled: float
     top_1_weight: float
@@ -121,16 +128,16 @@ class ConcentrationSummaryResponse(BaseModel):
     top_5_weight: float
 
 class ConcentrationLimitCreate(BaseModel):
-    portfolio_id: Optional[int] = None
+    portfolio_id: int | None = None
     limit_type: str
     threshold_value: float
     warning_threshold_value: float
     is_active: bool = True
 
 class ConcentrationLimitUpdate(BaseModel):
-    threshold_value: Optional[float] = None
-    warning_threshold_value: Optional[float] = None
-    is_active: Optional[bool] = None
+    threshold_value: float | None = None
+    warning_threshold_value: float | None = None
+    is_active: bool | None = None
 
 class ConcentrationLimitResponse(ConcentrationLimitCreate):
     id: int

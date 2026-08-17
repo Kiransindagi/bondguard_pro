@@ -1,9 +1,12 @@
-from sqlalchemy.orm import Session
-from typing import List, Optional
 import logging
 
 from app.db.models import InAppNotification
-from app.notifications.types import NotificationCreate, NotificationEventType, NotificationSeverity
+from app.notifications.types import (
+    NotificationCreate,
+    NotificationEventType,
+    NotificationSeverity,
+)
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +29,7 @@ class NotificationService:
         return db_notif
 
     @staticmethod
-    def get_user_notifications(db: Session, user_id: int, limit: int = 50) -> List[InAppNotification]:
+    def get_user_notifications(db: Session, user_id: int, limit: int = 50) -> list[InAppNotification]:
         return db.query(InAppNotification).filter(
             InAppNotification.user_id == user_id
         ).order_by(InAppNotification.created_at.desc()).limit(limit).all()
@@ -39,7 +42,7 @@ class NotificationService:
         ).count()
 
     @staticmethod
-    def mark_as_read(db: Session, notification_id: int, user_id: int) -> Optional[InAppNotification]:
+    def mark_as_read(db: Session, notification_id: int, user_id: int) -> InAppNotification | None:
         notif = db.query(InAppNotification).filter(
             InAppNotification.id == notification_id,
             InAppNotification.user_id == user_id

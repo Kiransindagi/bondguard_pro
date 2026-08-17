@@ -1,11 +1,17 @@
 from decimal import Decimal
-from typing import Dict, Any
-from .types import LiquidityAssumptionConfig, StressScenarioType
+from typing import Any
+
 from .classification import classify_liquidity
+from .liquidation_horizon import (
+    calculate_days_to_liquidate,
+    estimate_daily_capacity,
+    get_horizon_bucket,
+)
 from .liquidity_score import calculate_liquidity_score
-from .transaction_cost import estimate_bid_ask_spread_bps, calculate_liquidation_cost
-from .liquidation_horizon import estimate_daily_capacity, calculate_days_to_liquidate, get_horizon_bucket
 from .stressed_liquidity import get_stressed_multipliers
+from .transaction_cost import calculate_liquidation_cost, estimate_bid_ask_spread_bps
+from .types import LiquidityAssumptionConfig, StressScenarioType
+
 
 def calculate_position_liquidity(
     bond_type: str, 
@@ -15,7 +21,7 @@ def calculate_position_liquidity(
     portfolio_weight: float,
     config: LiquidityAssumptionConfig,
     scenario: StressScenarioType = StressScenarioType.NORMAL
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     
     score = calculate_liquidity_score(bond_type, rating, years_to_maturity, portfolio_weight, config)
     l_class = classify_liquidity(score)

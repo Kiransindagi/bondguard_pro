@@ -1,13 +1,15 @@
+from typing import Any
+
 import pandas as pd
-from typing import List, Dict, Any
-from app.risk_engine.types import BondRiskResult
 from app.risk_engine.market_risk.factor_mapping import FactorMappingService
+from app.risk_engine.types import BondRiskResult
+
 
 class ScenarioPnlMatrix:
     def __init__(self, aligned_shocks: pd.DataFrame):
         self.shocks = aligned_shocks
 
-    def compute_matrix(self, positions_risk: List[BondRiskResult], bonds_map: Dict[int, Any]) -> pd.DataFrame:
+    def compute_matrix(self, positions_risk: list[BondRiskResult], bonds_map: dict[int, Any]) -> pd.DataFrame:
         """
         Rows: dates
         Cols: bond_ids

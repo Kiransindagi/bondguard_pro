@@ -1,11 +1,13 @@
-from decimal import Decimal
 from datetime import date
-from app.schemas.portfolio import PortfolioCreate
+from decimal import Decimal
+
 from app.schemas.bond import BondCreate
+from app.schemas.portfolio import PortfolioCreate
 from app.schemas.transaction import TransactionCreate
-from app.services.portfolio import PortfolioService
 from app.services.bond import BondService
+from app.services.portfolio import PortfolioService
 from app.services.position import PositionService
+
 
 def test_quantity_market_value_convention(db_session):
     port_svc = PortfolioService(db_session)
@@ -18,7 +20,7 @@ def test_quantity_market_value_convention(db_session):
     bond1 = bond_svc.create_bond(BondCreate(
         isin="US9999999991",
         issuer_name="T1", bond_name="T1 Bond",
-        face_value=Decimal('1000'), coupon_rate=Decimal('0.05'),
+        face_value=Decimal(1000), coupon_rate=Decimal('0.05'),
         coupon_frequency="annual", issue_date=date(2020,1,1), maturity_date=date(2030,1,1),
         day_count_convention="30/360", bond_type="Corp"
     ))
@@ -27,7 +29,7 @@ def test_quantity_market_value_convention(db_session):
     bond2 = bond_svc.create_bond(BondCreate(
         isin="US9999999992",
         issuer_name="T2", bond_name="T2 Bond",
-        face_value=Decimal('100'), coupon_rate=Decimal('0.05'),
+        face_value=Decimal(100), coupon_rate=Decimal('0.05'),
         coupon_frequency="annual", issue_date=date(2020,1,1), maturity_date=date(2030,1,1),
         day_count_convention="30/360", bond_type="Corp"
     ))
@@ -40,7 +42,7 @@ def test_quantity_market_value_convention(db_session):
         transaction_type="BUY",
         trade_date=date(2024, 1, 1),
         settlement_date=date(2024, 1, 2),
-        quantity=Decimal('10'),
+        quantity=Decimal(10),
         clean_price=Decimal('99.50'),
         total_consideration=Decimal('9950.0')
     ))
@@ -53,7 +55,7 @@ def test_quantity_market_value_convention(db_session):
         transaction_type="BUY",
         trade_date=date(2024, 1, 1),
         settlement_date=date(2024, 1, 2),
-        quantity=Decimal('10000'),
+        quantity=Decimal(10000),
         clean_price=Decimal('99.50'),
         total_consideration=Decimal('995000.0')
     ))
@@ -69,7 +71,7 @@ def test_quantity_market_value_convention(db_session):
         transaction_type="BUY",
         trade_date=date(2024, 1, 5),
         settlement_date=date(2024, 1, 6),
-        quantity=Decimal('10'),
+        quantity=Decimal(10),
         clean_price=Decimal('100.00'),
         total_consideration=Decimal('10000.0') # 10 * 1000 * 100 / 100 = 10000
     ))

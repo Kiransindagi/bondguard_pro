@@ -1,7 +1,9 @@
-import pandas as pd
-from typing import Dict, Any
+from typing import Any
 
-def calculate_covariance_matrix(shocks: pd.DataFrame) -> Dict[str, Any]:
+import pandas as pd
+
+
+def calculate_covariance_matrix(shocks: pd.DataFrame) -> dict[str, Any]:
     cov = shocks.cov()
     
     return {
@@ -12,7 +14,7 @@ def calculate_covariance_matrix(shocks: pd.DataFrame) -> Dict[str, Any]:
         "end_date": shocks.index.max().isoformat() if not shocks.empty else None
     }
 
-def calculate_correlation_matrix(shocks: pd.DataFrame) -> Dict[str, Any]:
+def calculate_correlation_matrix(shocks: pd.DataFrame) -> dict[str, Any]:
     corr = shocks.corr()
     
     return {

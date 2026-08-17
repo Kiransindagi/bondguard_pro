@@ -1,8 +1,10 @@
-from typing import List, Optional
-from decimal import Decimal
 from datetime import date
+from decimal import Decimal
+
 from pydantic import BaseModel
+
 from .types import BondRiskResult
+
 
 class PortfolioRiskSummary(BaseModel):
     portfolio_id: int
@@ -15,11 +17,11 @@ class PortfolioRiskSummary(BaseModel):
     total_dv01: Decimal
     active_position_count: int
     matured_position_count: int
-    curve_date: Optional[date] = None
+    curve_date: date | None = None
 
-def aggregate_portfolio_risk(portfolio_id: int, valuation_date: date, position_risks: List[BondRiskResult], curve_date: Optional[date] = None) -> PortfolioRiskSummary:
-    total_mv = Decimal('0')
-    total_dv01 = Decimal('0')
+def aggregate_portfolio_risk(portfolio_id: int, valuation_date: date, position_risks: list[BondRiskResult], curve_date: date | None = None) -> PortfolioRiskSummary:
+    total_mv = Decimal(0)
+    total_dv01 = Decimal(0)
     active_count = 0
     matured_count = 0
 
@@ -35,9 +37,9 @@ def aggregate_portfolio_risk(portfolio_id: int, valuation_date: date, position_r
     if total_mv == 0:
         return PortfolioRiskSummary(
             portfolio_id=portfolio_id, valuation_date=valuation_date,
-            total_market_value=Decimal('0'), weighted_average_ytm=Decimal('0'),
-            weighted_macaulay_duration=Decimal('0'), weighted_modified_duration=Decimal('0'),
-            weighted_convexity=Decimal('0'), total_dv01=Decimal('0'),
+            total_market_value=Decimal(0), weighted_average_ytm=Decimal(0),
+            weighted_macaulay_duration=Decimal(0), weighted_modified_duration=Decimal(0),
+            weighted_convexity=Decimal(0), total_dv01=Decimal(0),
             active_position_count=active_count, matured_position_count=matured_count, curve_date=curve_date
         )
 

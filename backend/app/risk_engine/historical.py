@@ -1,17 +1,18 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import func
 from datetime import date
-from typing import Dict, Any, Optional
-import pandas as pd
+from typing import Any
 
-from app.db.models import MarketPrice, YieldCurvePoint, CreditSpread, Instrument
+import pandas as pd
+from app.db.models import CreditSpread, Instrument, MarketPrice, YieldCurvePoint
 from app.risk_engine.exceptions import RiskEngineError
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
 
 class HistoricalCoverageService:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_coverage_report(self) -> Dict[str, Any]:
+    def get_coverage_report(self) -> dict[str, Any]:
         """
         Builds a historical coverage report across ETFs, Yield Curve, and Credit Spreads.
         """
@@ -78,7 +79,7 @@ class FactorAlignmentService:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_aligned_factor_returns(self, start_date: Optional[date] = None, end_date: Optional[date] = None, required_obs: int = 252, model_status: str = "FULL_FACTOR_MODEL", include_etfs: bool = True) -> pd.DataFrame:
+    def get_aligned_factor_returns(self, start_date: date | None = None, end_date: date | None = None, required_obs: int = 252, model_status: str = "FULL_FACTOR_MODEL", include_etfs: bool = True) -> pd.DataFrame:
         """
         Builds a time-aligned DataFrame of daily factor shocks (basis point changes for rates/spreads, log returns for prices).
         No forward filling. Drops rows with missing data to ensure aligned shocks.
@@ -156,11 +157,7 @@ class FactorAlignmentService:
         # Filter columns based on model status and ETF inclusion
         cols_to_keep = []
         for col in aligned.columns:
-            if col.startswith("RATE_"):
-                cols_to_keep.append(col)
-            elif col.startswith("SPREAD_") and model_status == "FULL_FACTOR_MODEL":
-                cols_to_keep.append(col)
-            elif not col.startswith("RATE_") and not col.startswith("SPREAD_") and include_etfs:
+            if col.startswith("RATE_") or col.startswith("SPREAD_") and model_status == "FULL_FACTOR_MODEL" or not col.startswith("RATE_") and not col.startswith("SPREAD_") and include_etfs:
                 cols_to_keep.append(col)
                 
         aligned = aligned[cols_to_keep]

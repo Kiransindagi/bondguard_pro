@@ -1,7 +1,7 @@
-import asyncio
-from app.db.database import SessionLocal
 from app.auth.password import get_password_hash
-from app.db.models import User, Role
+from app.db.database import SessionLocal
+from app.db.models import Role, User
+
 
 def seed():
     session = SessionLocal()

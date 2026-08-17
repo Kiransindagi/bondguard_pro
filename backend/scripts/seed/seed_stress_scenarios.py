@@ -1,7 +1,8 @@
 import logging
-from sqlalchemy.orm import Session
+
 from app.db.database import SessionLocal, engine
 from app.db.models import Base, StressScenario
+from sqlalchemy.orm import Session
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

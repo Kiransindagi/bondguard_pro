@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class IngestionStatus(str, Enum):
     RUNNING = "RUNNING"
     SUCCESS = "SUCCESS"

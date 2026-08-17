@@ -1,18 +1,19 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 
 class TransactionBase(BaseModel):
     portfolio_id: int
     bond_id: int
     transaction_type: str = Field(..., pattern="^(BUY|SELL|ADJUSTMENT)$")
     trade_date: date
-    settlement_date: Optional[date] = None
+    settlement_date: date | None = None
     quantity: Decimal
     clean_price: Decimal = Field(..., gt=0)
-    accrued_interest: Optional[Decimal] = Field(default=Decimal('0.0'))
-    total_consideration: Optional[Decimal] = None
+    accrued_interest: Decimal | None = Field(default=Decimal('0.0'))
+    total_consideration: Decimal | None = None
 
     @model_validator(mode='after')
     def check_dates_and_quantities(self):

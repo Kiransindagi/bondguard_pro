@@ -1,19 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
 from datetime import date
-from typing import Optional
-
-from app.db.database import get_db
-from app.db.models import YieldCurvePoint, MarketPrice, CreditSpread, MacroObservation, Instrument, DataIngestionRun
 
 from app.auth.dependencies import PermissionChecker
 from app.auth.permissions import PORTFOLIO_READ
+from app.db.database import get_db
+from app.db.models import (
+    CreditSpread,
+    DataIngestionRun,
+    Instrument,
+    MacroObservation,
+    MarketPrice,
+    YieldCurvePoint,
+)
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 
 @router.get("/yield-curve")
-def get_yield_curve(date: Optional[date] = None, db: Session = Depends(get_db)):
+def get_yield_curve(date: date | None = None, db: Session = Depends(get_db)):
     if not date:
         latest_point = db.query(YieldCurvePoint).order_by(desc(YieldCurvePoint.observation_date)).first()
         if not latest_point:
@@ -24,7 +29,7 @@ def get_yield_curve(date: Optional[date] = None, db: Session = Depends(get_db)):
     return [{"observation_date": p.observation_date, "tenor_years": p.tenor_years, "yield_percent": p.yield_percent} for p in points]
 
 @router.get("/prices")
-def get_prices(symbol: str, start_date: Optional[date] = None, end_date: Optional[date] = None, db: Session = Depends(get_db)):
+def get_prices(symbol: str, start_date: date | None = None, end_date: date | None = None, db: Session = Depends(get_db)):
     inst = db.query(Instrument).filter(Instrument.symbol == symbol).first()
     if not inst:
         raise HTTPException(status_code=404, detail="Instrument not found")
@@ -48,7 +53,7 @@ def get_prices(symbol: str, start_date: Optional[date] = None, end_date: Optiona
     } for p in prices]
 
 @router.get("/spreads")
-def get_spreads(spread_type: Optional[str] = None, start_date: Optional[date] = None, end_date: Optional[date] = None, db: Session = Depends(get_db)):
+def get_spreads(spread_type: str | None = None, start_date: date | None = None, end_date: date | None = None, db: Session = Depends(get_db)):
     query = db.query(CreditSpread)
     if spread_type:
         query = query.filter(CreditSpread.spread_type == spread_type)
@@ -65,7 +70,7 @@ def get_spreads(spread_type: Optional[str] = None, start_date: Optional[date] = 
     } for s in spreads]
 
 @router.get("/macro")
-def get_macro(metric: Optional[str] = None, start_date: Optional[date] = None, end_date: Optional[date] = None, db: Session = Depends(get_db)):
+def get_macro(metric: str | None = None, start_date: date | None = None, end_date: date | None = None, db: Session = Depends(get_db)):
     query = db.query(MacroObservation)
     if metric:
         query = query.filter(MacroObservation.metric_name == metric)

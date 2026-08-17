@@ -1,23 +1,30 @@
 import logging
 import time
 from datetime import date, datetime, timedelta, timezone
-from typing import Dict, Any, Optional
-from sqlalchemy import func
-from sqlalchemy.orm import Session
-from app.core.observability import log_duration
+from typing import Any
 
-from app.db.models import (
-    PipelineRun, PipelineJobRun, Instrument, MarketPrice, 
-    YieldCurvePoint, CreditSpread, MacroObservation
-)
-from app.data_pipeline.registry import get_active_datasets, get_dataset_metadata
+from app.core.observability import log_duration
 from app.data.fred_client import FredAPIClient
 from app.data.market_client import YFinanceProvider
 from app.data.repository import DataRepository
 from app.data.transformations import (
-    transform_fred_to_yield_curve, transform_fred_to_credit_spread, transform_fred_to_macro
+    transform_fred_to_credit_spread,
+    transform_fred_to_macro,
+    transform_fred_to_yield_curve,
 )
 from app.data.validators import validate_market_price, validate_yield_curve_point
+from app.data_pipeline.registry import get_active_datasets, get_dataset_metadata
+from app.db.models import (
+    CreditSpread,
+    Instrument,
+    MacroObservation,
+    MarketPrice,
+    PipelineJobRun,
+    PipelineRun,
+    YieldCurvePoint,
+)
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -36,11 +43,11 @@ def retry_on_exception(func_call: Any, max_attempts: int = 3, initial_delay: flo
             error_str = str(e).lower()
             if "validation" in error_str or "integrity" in error_str or "unique constraint" in error_str:
                 logger.error(f"Non-retryable failure encountered: {e}")
-                raise e
+                raise
             
             if attempt >= max_attempts:
                 logger.error(f"Operation failed after {max_attempts} attempts: {e}")
-                raise e
+                raise
             logger.warning(f"Transient error: {e}. Attempt {attempt}/{max_attempts}. Retrying in {delay}s...")
             time.sleep(delay)
             attempt += 1
@@ -53,7 +60,7 @@ class PipelineOrchestrator:
         self.fred_client = FredAPIClient()
         self.market_provider = YFinanceProvider()
 
-    def get_max_observation_date(self, dataset_key: str) -> Optional[date]:
+    def get_max_observation_date(self, dataset_key: str) -> date | None:
         meta = get_dataset_metadata(dataset_key)
         if not meta:
             return None
@@ -82,7 +89,7 @@ class PipelineOrchestrator:
             ).scalar()
         return None
 
-    def calculate_dates(self, dataset_key: str, run_type: str, start_date: Optional[date] = None, end_date: Optional[date] = None) -> tuple[Optional[date], Optional[date]]:
+    def calculate_dates(self, dataset_key: str, run_type: str, start_date: date | None = None, end_date: date | None = None) -> tuple[date | None, date | None]:
         # Resolve end date
         if not end_date:
             end_date = date.today()
@@ -100,7 +107,7 @@ class PipelineOrchestrator:
         # Default backfill fallback (3 years)
         return date.today() - timedelta(days=3 * 365), end_date
 
-    def ingest_dataset_job(self, job_run: PipelineJobRun, start_date: date, end_date: date) -> Dict[str, Any]:
+    def ingest_dataset_job(self, job_run: PipelineJobRun, start_date: date, end_date: date) -> dict[str, Any]:
         dataset_key = job_run.dataset_key
         meta = get_dataset_metadata(dataset_key)
         category = meta["category"]
@@ -152,10 +159,10 @@ class PipelineOrchestrator:
     def run_pipeline(
         self, 
         run_type: str, 
-        dataset_key: Optional[str] = None, 
-        category: Optional[str] = None, 
-        start_date: Optional[date] = None, 
-        end_date: Optional[date] = None, 
+        dataset_key: str | None = None, 
+        category: str | None = None, 
+        start_date: date | None = None, 
+        end_date: date | None = None, 
         triggered_by: str = "SYSTEM"
     ) -> PipelineRun:
         # Determine active datasets to process
@@ -241,7 +248,11 @@ class PipelineOrchestrator:
         self.db.refresh(pipeline_run)
 
         # Dispatch notifications on failures or partial successes
-        from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+        from app.notifications import (
+            NotificationDispatcher,
+            NotificationEventType,
+            NotificationSeverity,
+        )
         if pipeline_run.status == "FAILED":
             NotificationDispatcher.dispatch_event(
                 db=self.db,

@@ -1,7 +1,8 @@
-from enum import Enum
-from pydantic import BaseModel
-from typing import Optional, List
 from datetime import date
+from enum import Enum
+
+from pydantic import BaseModel
+
 
 class CalculationMethod(str, Enum):
     FULL_REVALUATION = "FULL_REVALUATION"
@@ -16,7 +17,7 @@ class ScenarioType(str, Enum):
 
 class StressScenarioCreate(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     scenario_type: ScenarioType
     is_predefined: bool = False
     rate_2y_shock_bps: float = 0.0
@@ -28,22 +29,22 @@ class StressScenarioCreate(BaseModel):
     default_calculation_method: CalculationMethod = CalculationMethod.FULL_REVALUATION
 
 class StressScenarioUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    rate_2y_shock_bps: Optional[float] = None
-    rate_5y_shock_bps: Optional[float] = None
-    rate_10y_shock_bps: Optional[float] = None
-    rate_30y_shock_bps: Optional[float] = None
-    ig_spread_shock_bps: Optional[float] = None
-    hy_spread_shock_bps: Optional[float] = None
-    default_calculation_method: Optional[CalculationMethod] = None
+    name: str | None = None
+    description: str | None = None
+    rate_2y_shock_bps: float | None = None
+    rate_5y_shock_bps: float | None = None
+    rate_10y_shock_bps: float | None = None
+    rate_30y_shock_bps: float | None = None
+    ig_spread_shock_bps: float | None = None
+    hy_spread_shock_bps: float | None = None
+    default_calculation_method: CalculationMethod | None = None
 
 class StressScenarioResponse(StressScenarioCreate):
     id: int
 
 class StressRunRequest(BaseModel):
     scenario_id: int
-    calculation_method: Optional[CalculationMethod] = None
+    calculation_method: CalculationMethod | None = None
 
 class StressPositionResultResponse(BaseModel):
     id: int
@@ -73,10 +74,10 @@ class StressRunResponse(BaseModel):
     total_pnl: float
     total_loss_percent: float
     position_count: int
-    positions: List[StressPositionResultResponse] = []
+    positions: list[StressPositionResultResponse] = []
 
 class StressComparisonRequest(BaseModel):
-    scenario_ids: List[int]
+    scenario_ids: list[int]
 
 class PortfolioStressSummaryResponse(BaseModel):
     portfolio_id: int
@@ -88,14 +89,14 @@ class PortfolioStressSummaryResponse(BaseModel):
     stressed_market_value: float
     total_pnl: float
     total_loss_percent: float
-    largest_loss_position_bond_id: Optional[int]
-    largest_gain_position_bond_id: Optional[int]
+    largest_loss_position_bond_id: int | None
+    largest_gain_position_bond_id: int | None
     position_count: int
     rate_scenario_description: str
     credit_scenario_description: str
-    limitations: Optional[str] = None
+    limitations: str | None = None
 
 class StressComparisonResponse(BaseModel):
     portfolio_id: int
     valuation_date: date
-    scenarios: List[PortfolioStressSummaryResponse]
+    scenarios: list[PortfolioStressSummaryResponse]

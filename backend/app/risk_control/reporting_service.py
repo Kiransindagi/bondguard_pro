@@ -2,16 +2,30 @@ import logging
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy.orm import Session
-
-from app.db.models import Portfolio, RiskEvaluationRun, RiskLimitResult, Breach, RiskLimit
-from app.schemas.risk_control import (
-    RiskReportResponse, ReportMetadata, PortfolioRiskSection, MarketRiskSection,
-    StressRiskSection, LiquidityRiskSection, ConcentrationSection, LimitSummary,
-    LimitResultItem, BreachSummary, ActiveBreachItem, ModelGovernance
+from app.db.models import (
+    Breach,
+    Portfolio,
+    RiskEvaluationRun,
+    RiskLimit,
+    RiskLimitResult,
 )
-from app.risk_control.metric_registry import registry
 from app.risk_control.enums import MetricType
+from app.risk_control.metric_registry import registry
+from app.schemas.risk_control import (
+    ActiveBreachItem,
+    BreachSummary,
+    ConcentrationSection,
+    LimitResultItem,
+    LimitSummary,
+    LiquidityRiskSection,
+    MarketRiskSection,
+    ModelGovernance,
+    PortfolioRiskSection,
+    ReportMetadata,
+    RiskReportResponse,
+    StressRiskSection,
+)
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +71,11 @@ class ReportingService:
         )
         
         # Market Risk Section
-        from app.api.v1.market_risk import get_historical_var, get_parametric_var, get_expected_shortfall
+        from app.api.v1.market_risk import (
+            get_expected_shortfall,
+            get_historical_var,
+            get_parametric_var,
+        )
         hist_var, param_var, es = None, None, None
         mr_model_status = "AVAILABLE"
         mr_limitations = None
@@ -76,7 +94,9 @@ class ReportingService:
         except Exception as e:
             logger.error(f"Failed to generate market risk section: {e}", exc_info=True)
             try:
-                from app.risk_engine.market_risk.availability import check_model_availability
+                from app.risk_engine.market_risk.availability import (
+                    check_model_availability,
+                )
                 avail = check_model_availability(db)
                 mr_model_status = avail.model_status.value
                 mr_limitations = avail.limitations
@@ -92,8 +112,8 @@ class ReportingService:
             limitations=mr_limitations
         )
         
-        from app.risk_engine.stress_testing.portfolio_stress import compare_scenarios
         from app.db.models import StressScenario
+        from app.risk_engine.stress_testing.portfolio_stress import compare_scenarios
         worst_name, worst_code, worst_pnl, worst_pct = None, None, None, None
         try:
             predefined = db.query(StressScenario).filter(StressScenario.is_predefined.is_(True)).all()

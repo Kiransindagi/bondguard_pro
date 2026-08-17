@@ -1,6 +1,7 @@
-from typing import List, Dict, Any
+from typing import Any
 
-def calculate_concentration(positions: List[Dict[str, Any]], dimension: str) -> List[Dict[str, Any]]:
+
+def calculate_concentration(positions: list[dict[str, Any]], dimension: str) -> list[dict[str, Any]]:
     total_mv = sum(float(p['market_value']) for p in positions)
     if total_mv <= 0:
         return []
@@ -30,5 +31,5 @@ def calculate_concentration(positions: List[Dict[str, Any]], dimension: str) -> 
     results.sort(key=lambda x: x['market_value'], reverse=True)
     return results
 
-def calculate_hhi(concentration_results: List[Dict[str, Any]]) -> float:
+def calculate_hhi(concentration_results: list[dict[str, Any]]) -> float:
     return sum(r['portfolio_weight'] ** 2 for r in concentration_results)

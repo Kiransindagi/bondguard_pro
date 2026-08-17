@@ -1,28 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from typing import List, Optional
 from datetime import date
 from decimal import Decimal
-from app.db.database import get_db
-from app.db.models import Bond, Position, Portfolio, YieldCurvePoint
-from app.risk_engine.types import BondRiskInput, BondRiskResult
-from app.risk_engine.portfolio_risk import PortfolioRiskSummary, aggregate_portfolio_risk
-from app.risk_engine.historical import HistoricalCoverageService, FactorAlignmentService
-from app.risk_engine.position_risk import calculate_position_risk
-from app.risk_engine.curve import YieldCurve
-from app.risk_engine.exceptions import RiskEngineError
 
 from app.auth.dependencies import PermissionChecker
 from app.auth.permissions import RISK_READ
+from app.db.database import get_db
+from app.db.models import Bond, Portfolio, Position, YieldCurvePoint
+from app.risk_engine.curve import YieldCurve
+from app.risk_engine.exceptions import RiskEngineError
+from app.risk_engine.historical import FactorAlignmentService, HistoricalCoverageService
+from app.risk_engine.portfolio_risk import (
+    PortfolioRiskSummary,
+    aggregate_portfolio_risk,
+)
+from app.risk_engine.position_risk import calculate_position_risk
+from app.risk_engine.types import BondRiskInput, BondRiskResult
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(PermissionChecker(RISK_READ))])
 
 @router.get("/bonds/{bond_id}", response_model=BondRiskResult)
 def get_bond_risk(
     bond_id: int, 
-    valuation_date: Optional[date] = None,
-    clean_price: Optional[Decimal] = None,
-    ytm: Optional[Decimal] = None,
+    valuation_date: date | None = None,
+    clean_price: Decimal | None = None,
+    ytm: Decimal | None = None,
     db: Session = Depends(get_db)
 ):
     if not valuation_date:
@@ -47,7 +49,7 @@ def get_bond_risk(
         valuation_date=valuation_date,
         clean_price=clean_price,
         ytm=ytm,
-        quantity=Decimal('1')
+        quantity=Decimal(1)
     )
     
     try:
@@ -93,8 +95,8 @@ def get_historical_alignment(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/portfolios/{portfolio_id}/positions", response_model=List[BondRiskResult])
-def get_portfolio_positions_risk(portfolio_id: int, valuation_date: Optional[date] = None, db: Session = Depends(get_db)):
+@router.get("/portfolios/{portfolio_id}/positions", response_model=list[BondRiskResult])
+def get_portfolio_positions_risk(portfolio_id: int, valuation_date: date | None = None, db: Session = Depends(get_db)):
     if not valuation_date:
         valuation_date = date.today()
         
@@ -135,7 +137,7 @@ def get_portfolio_positions_risk(portfolio_id: int, valuation_date: Optional[dat
     return results
 
 @router.get("/portfolios/{portfolio_id}/summary", response_model=PortfolioRiskSummary)
-def get_portfolio_risk_summary(portfolio_id: int, valuation_date: Optional[date] = None, db: Session = Depends(get_db)):
+def get_portfolio_risk_summary(portfolio_id: int, valuation_date: date | None = None, db: Session = Depends(get_db)):
     if not valuation_date:
         valuation_date = date.today()
         

@@ -1,11 +1,11 @@
-import pytest
 from datetime import date
 from decimal import Decimal
-from sqlalchemy.orm import Session
 
-from app.db.models import Bond, Position, Portfolio
-from app.scenario_lab.validator import ScenarioValidator
+import pytest
+from app.db.models import Bond, Portfolio, Position
 from app.scenario_lab.execution_service import ScenarioExecutionService
+from app.scenario_lab.validator import ScenarioValidator
+from sqlalchemy.orm import Session
 
 
 def test_custom_shock_validator():
@@ -36,12 +36,12 @@ def test_custom_shock_validator():
 def test_scenario_zero_shock(db_session: Session):
     """Zero shocks across all tenors and spreads must produce near-zero P&L impact."""
     treasury = Bond(isin="US123", bond_name="T-Bond", issuer_name="US Govt",
-                    face_value=Decimal(100), coupon_rate=Decimal(0.04),
+                    face_value=Decimal(100), coupon_rate=Decimal("0.04"),
                     coupon_frequency="semiannual", issue_date=date(2020, 1, 1),
                     maturity_date=date(2030, 1, 1), day_count_convention="ACT/ACT",
                     bond_type="Treasury")
     corp = Bond(isin="US456", bond_name="Corp-Bond", issuer_name="Corp Inc",
-                face_value=Decimal(100), coupon_rate=Decimal(0.05),
+                face_value=Decimal(100), coupon_rate=Decimal("0.05"),
                 coupon_frequency="semiannual", issue_date=date(2020, 1, 1),
                 maturity_date=date(2030, 1, 1), day_count_convention="30/360",
                 bond_type="Corporate")
@@ -70,12 +70,12 @@ def test_scenario_zero_shock(db_session: Session):
 def test_scenario_rate_increase_produces_negative_pnl(db_session: Session):
     """Parallel +100bps rate increase must produce negative P&L for long duration portfolio."""
     treasury = Bond(isin="US223", bond_name="T-Bond2", issuer_name="US Govt",
-                    face_value=Decimal(100), coupon_rate=Decimal(0.04),
+                    face_value=Decimal(100), coupon_rate=Decimal("0.04"),
                     coupon_frequency="semiannual", issue_date=date(2020, 1, 1),
                     maturity_date=date(2030, 1, 1), day_count_convention="ACT/ACT",
                     bond_type="Treasury")
     corp = Bond(isin="US556", bond_name="Corp-Bond2", issuer_name="Corp Inc",
-                face_value=Decimal(100), coupon_rate=Decimal(0.05),
+                face_value=Decimal(100), coupon_rate=Decimal("0.05"),
                 coupon_frequency="semiannual", issue_date=date(2020, 1, 1),
                 maturity_date=date(2030, 1, 1), day_count_convention="30/360",
                 bond_type="Corporate")
@@ -104,12 +104,12 @@ def test_scenario_rate_increase_produces_negative_pnl(db_session: Session):
 def test_scenario_spread_widening_only_hits_corporate(db_session: Session):
     """IG spread widening must produce zero impact on Treasuries and negative on corporates."""
     treasury = Bond(isin="US323", bond_name="T-Bond3", issuer_name="US Govt",
-                    face_value=Decimal(100), coupon_rate=Decimal(0.04),
+                    face_value=Decimal(100), coupon_rate=Decimal("0.04"),
                     coupon_frequency="semiannual", issue_date=date(2020, 1, 1),
                     maturity_date=date(2030, 1, 1), day_count_convention="ACT/ACT",
                     bond_type="Treasury")
     corp = Bond(isin="US656", bond_name="Corp-Bond3", issuer_name="Corp Inc",
-                face_value=Decimal(100), coupon_rate=Decimal(0.05),
+                face_value=Decimal(100), coupon_rate=Decimal("0.05"),
                 coupon_frequency="semiannual", issue_date=date(2020, 1, 1),
                 maturity_date=date(2030, 1, 1), day_count_convention="30/360",
                 bond_type="Corporate")

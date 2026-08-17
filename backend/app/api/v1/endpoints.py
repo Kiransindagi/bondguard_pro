@@ -1,14 +1,13 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import text
 from datetime import datetime, timezone
-from pydantic import BaseModel
 
-from app.db.database import get_db
 from app.core.config import settings
-from app.db.models import PipelineRun, DataQualityRun, AnalyticsRun
+from app.db.database import get_db
+from app.db.models import AnalyticsRun, DataQualityRun, PipelineRun
 from app.risk_engine.market_risk.availability import check_model_availability
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -47,10 +46,10 @@ def get_database_status(db: Session = Depends(get_db)):
 class OperationalHealthResponse(BaseModel):
     status: str
     database_connected: bool
-    latest_pipeline_status: Optional[str] = None
-    latest_quality_status: Optional[str] = None
-    latest_analytics_run_status: Optional[str] = None
-    market_risk_model_availability: Optional[str] = None
+    latest_pipeline_status: str | None = None
+    latest_quality_status: str | None = None
+    latest_analytics_run_status: str | None = None
+    market_risk_model_availability: str | None = None
 
 
 @router.get("/system/health", response_model=OperationalHealthResponse)

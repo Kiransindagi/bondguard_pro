@@ -1,9 +1,11 @@
-from pydantic import BaseModel
 from datetime import date, datetime
-from typing import Optional, Dict, Any
+from typing import Any
+
+from pydantic import BaseModel
+
 
 class AnalyticsRunRequest(BaseModel):
-    valuation_date: Optional[date] = None
+    valuation_date: date | None = None
 
 class AnalyticsRunResponse(BaseModel):
     id: int
@@ -11,12 +13,12 @@ class AnalyticsRunResponse(BaseModel):
     valuation_date: date
     status: str
     started_at: datetime
-    completed_at: Optional[datetime] = None
-    calculation_version: Optional[str] = None
-    model_status: Optional[str] = None
-    data_quality_status: Optional[str] = None
-    error_summary: Optional[str] = None
-    metadata_json: Optional[Dict[str, Any]] = None
+    completed_at: datetime | None = None
+    calculation_version: str | None = None
+    model_status: str | None = None
+    data_quality_status: str | None = None
+    error_summary: str | None = None
+    metadata_json: dict[str, Any] | None = None
 
     class Config:
         from_attributes = True

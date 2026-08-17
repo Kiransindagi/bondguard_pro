@@ -1,8 +1,10 @@
+from typing import Any
+
 import numpy as np
-from typing import Dict, Any
 from app.risk_engine.market_risk.historical_var import calculate_historical_var
 
-def calculate_backtest(pnl_vector: np.ndarray, confidence_level: float = 0.95, window: int = 252) -> Dict[str, Any]:
+
+def calculate_backtest(pnl_vector: np.ndarray, confidence_level: float = 0.95, window: int = 252) -> dict[str, Any]:
     """
     VaR backtesting using rolling estimation windows.
     pnl_vector: actual daily P&Ls.

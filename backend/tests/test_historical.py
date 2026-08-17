@@ -1,8 +1,10 @@
-import pytest
 from datetime import date
-from app.db.models import Instrument, MarketPrice, YieldCurvePoint, CreditSpread
-from app.risk_engine.historical import HistoricalCoverageService, FactorAlignmentService
+
+import pytest
+from app.db.models import CreditSpread, Instrument, MarketPrice, YieldCurvePoint
 from app.risk_engine.exceptions import RiskEngineError
+from app.risk_engine.historical import FactorAlignmentService, HistoricalCoverageService
+
 
 def test_coverage_service(db_session):
     # Insert some mock data

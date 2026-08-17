@@ -1,5 +1,6 @@
 from app.db.models import Bond
 
+
 def resolve_spread_shock(bond: Bond, ig_shock_bps: float, hy_shock_bps: float) -> float:
     """
     Resolve the applicable credit spread shock for a bond.

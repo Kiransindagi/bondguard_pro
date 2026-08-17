@@ -1,5 +1,6 @@
 from app.db.models import Bond
 
+
 class FactorMappingService:
     @staticmethod
     def get_rate_factor_for_tenor(tenor: float) -> str:

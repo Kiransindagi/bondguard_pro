@@ -1,14 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import List, Optional
 
-from app.db.database import get_db
-from app.db.models import User, Role
 from app.auth.dependencies import PermissionChecker
 from app.auth.password import get_password_hash
 from app.auth.permissions import USER_MANAGE
+from app.db.database import get_db
+from app.db.models import Role, User
 from app.risk_control.audit_service import AuditService
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -16,18 +15,18 @@ class UserCreate(BaseModel):
     username: str
     email: str
     password: str
-    role_names: List[str]
+    role_names: list[str]
 
 class UserUpdate(BaseModel):
-    email: Optional[str] = None
-    is_active: Optional[bool] = None
-    role_names: Optional[List[str]] = None
+    email: str | None = None
+    is_active: bool | None = None
+    role_names: list[str] | None = None
 
 class RoleOut(BaseModel):
     id: int
     name: str
-    description: Optional[str] = None
-    permissions: List[str]
+    description: str | None = None
+    permissions: list[str]
 
     class Config:
         from_attributes = True
@@ -37,7 +36,7 @@ class UserOut(BaseModel):
     username: str
     email: str
     is_active: bool
-    roles: List[str]
+    roles: list[str]
 
     class Config:
         from_attributes = True
@@ -45,7 +44,7 @@ class UserOut(BaseModel):
 # Guard all routes in this router with USER_MANAGE permission
 admin_dependency = Depends(PermissionChecker(USER_MANAGE))
 
-@router.get("/users", response_model=List[UserOut], dependencies=[admin_dependency])
+@router.get("/users", response_model=list[UserOut], dependencies=[admin_dependency])
 def list_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     out = []
@@ -148,7 +147,7 @@ def update_user(user_id: int, user_up: UserUpdate, db: Session = Depends(get_db)
         "roles": [r.name for r in db_user.roles]
     }
 
-@router.get("/roles", response_model=List[RoleOut], dependencies=[admin_dependency])
+@router.get("/roles", response_model=list[RoleOut], dependencies=[admin_dependency])
 def list_roles(db: Session = Depends(get_db)):
     roles = db.query(Role).all()
     out = []

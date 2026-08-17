@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List, Optional
+
+from app.auth.dependencies import PermissionChecker
+from app.auth.permissions import PORTFOLIO_READ, PORTFOLIO_WRITE
 from app.db.database import get_db
 from app.schemas.bond import BondCreate, BondResponse, BondUpdate
 from app.services.bond import BondService
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
-from app.auth.dependencies import PermissionChecker
-from app.auth.permissions import PORTFOLIO_READ, PORTFOLIO_WRITE
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -27,13 +27,13 @@ def update_bond(bond_id: int, schema: BondUpdate, db: Session = Depends(get_db))
         raise HTTPException(status_code=404, detail="Bond not found")
     return bond
 
-@router.get("", response_model=List[BondResponse], dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
+@router.get("", response_model=list[BondResponse], dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 def list_bonds(
-    issuer: Optional[str] = None,
-    rating: Optional[str] = None,
-    sector: Optional[str] = None,
-    maturity_from: Optional[str] = None,
-    maturity_to: Optional[str] = None,
+    issuer: str | None = None,
+    rating: str | None = None,
+    sector: str | None = None,
+    maturity_from: str | None = None,
+    maturity_to: str | None = None,
     db: Session = Depends(get_db)
 ):
     svc = BondService(db)

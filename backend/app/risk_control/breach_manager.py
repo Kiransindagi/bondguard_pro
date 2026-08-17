@@ -1,9 +1,11 @@
-from sqlalchemy.orm import Session
 from datetime import datetime
 from decimal import Decimal
-from app.db.models import Breach, RiskLimit, RiskEvaluationRun
-from app.risk_control.enums import BreachStatus
+
+from app.db.models import Breach, RiskEvaluationRun, RiskLimit
 from app.risk_control.audit_service import AuditService
+from app.risk_control.enums import BreachStatus
+from sqlalchemy.orm import Session
+
 
 class BreachManager:
     @staticmethod
@@ -43,7 +45,11 @@ class BreachManager:
                 previous_state=prev_state, new_state=new_state
             )
 
-            from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+            from app.notifications import (
+                NotificationDispatcher,
+                NotificationEventType,
+                NotificationSeverity,
+            )
             notif_sev = NotificationSeverity.SEVERE if existing.severity == "HARD_LIMIT" else NotificationSeverity.WARNING
             NotificationDispatcher.dispatch_breach_event(
                 db=db,
@@ -79,7 +85,11 @@ class BreachManager:
                 }
             )
 
-            from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+            from app.notifications import (
+                NotificationDispatcher,
+                NotificationEventType,
+                NotificationSeverity,
+            )
             notif_sev = NotificationSeverity.SEVERE if limit.severity == "HARD_LIMIT" else NotificationSeverity.WARNING
             NotificationDispatcher.dispatch_breach_event(
                 db=db,
@@ -115,7 +125,11 @@ class BreachManager:
                 previous_state=prev_state, new_state=new_state
             )
 
-            from app.notifications import NotificationDispatcher, NotificationEventType, NotificationSeverity
+            from app.notifications import (
+                NotificationDispatcher,
+                NotificationEventType,
+                NotificationSeverity,
+            )
             NotificationDispatcher.dispatch_event(
                 db=db,
                 event_type=NotificationEventType.BREACH_RESOLVED,

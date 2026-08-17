@@ -1,16 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 from datetime import date
-from typing import Optional
-from pydantic import BaseModel
 
+from app.auth.dependencies import PermissionChecker, get_current_user
+from app.auth.permissions import PORTFOLIO_READ, STRESS_EXECUTE
 from app.db.database import get_db
-from app.db.models import User, SavedScenario
-from app.auth.dependencies import get_current_user, PermissionChecker
-from app.auth.permissions import STRESS_EXECUTE, PORTFOLIO_READ
-from app.scenario_lab.validator import ScenarioValidator
-from app.scenario_lab.execution_service import ScenarioExecutionService
+from app.db.models import SavedScenario, User
 from app.scenario_lab.comparison_service import ScenarioComparisonService
+from app.scenario_lab.execution_service import ScenarioExecutionService
+from app.scenario_lab.validator import ScenarioValidator
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -32,7 +31,7 @@ class ScenarioRunRequest(BaseModel):
     rate_30y_shock_bps: int = 0
     ig_spread_shock_bps: int = 0
     hy_spread_shock_bps: int = 0
-    valuation_date: Optional[date] = None
+    valuation_date: date | None = None
 
 @router.post("/run", dependencies=[Depends(PermissionChecker(STRESS_EXECUTE))])
 def run_custom_scenario(
@@ -156,7 +155,7 @@ def delete_scenario(
 def compare_portfolio_scenario(
     portfolio_id: int,
     scenario_id: int = Query(...),
-    valuation_date: Optional[date] = None,
+    valuation_date: date | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

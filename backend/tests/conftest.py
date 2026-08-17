@@ -1,12 +1,12 @@
-import tempfile
 import os
+import tempfile
+
 import pytest
+from app.db.database import Base, get_db
+from app.main import app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-from app.main import app
-from app.db.database import Base, get_db
 
 # Create a temporary file path for sqlite tests to avoid cluttering the repository root
 db_fd, db_path = tempfile.mkstemp(suffix=".db", prefix="bondguard_test_")
@@ -41,11 +41,15 @@ def db_session():
 @pytest.fixture(scope="function")
 def seeded_db_session(db_session):
     # Seed all baseline data for tests
-    from scripts.seed.seed_portfolio import seed_data as seed_portfolio_data
-    from scripts.seed.seed_stress_scenarios import seed_scenarios as seed_stress_scenarios
+    from scripts.seed.seed_concentration_limits import (
+        seed_limits as seed_concentration_limits,
+    )
     from scripts.seed.seed_liquidity_assumptions import seed_assumptions
-    from scripts.seed.seed_concentration_limits import seed_limits as seed_concentration_limits
+    from scripts.seed.seed_portfolio import seed_data as seed_portfolio_data
     from scripts.seed.seed_risk_limits import seed_limits as seed_risk_limits
+    from scripts.seed.seed_stress_scenarios import (
+        seed_scenarios as seed_stress_scenarios,
+    )
 
     seed_portfolio_data(db_session)
     seed_stress_scenarios(db_session)

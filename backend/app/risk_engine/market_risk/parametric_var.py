@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 
+
 def calculate_parametric_var(exposures: np.ndarray, covariance_matrix: np.ndarray, confidence_level: float = 0.95) -> float:
     """
     Parametric VaR = Z * sqrt(w^T * Sigma * w)

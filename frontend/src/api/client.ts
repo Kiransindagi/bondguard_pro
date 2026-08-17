@@ -341,11 +341,6 @@ export const assignBreach = async (id: number, userId: number) => {
   return response.data;
 };
 
-export const reviewBreach = async (id: number, notes: string) => {
-  const response = await apiClient.post(`/risk-control/breaches/${id}/review`, null, { params: { notes } });
-  return response.data;
-};
-
 export const resolveBreach = async (id: number, notes: string) => {
   const response = await apiClient.post(`/risk-control/breaches/${id}/resolve`, null, { params: { notes } });
   return response.data;

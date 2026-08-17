@@ -1,9 +1,11 @@
-from typing import List
 from datetime import date
-from sqlalchemy.orm import Session
+
 from app.db.models import StressScenario, StressTestRun
-from .types import PortfolioStressSummaryResponse, StressComparisonResponse
+from sqlalchemy.orm import Session
+
 from .scenario_runner import run_portfolio_stress_test
+from .types import PortfolioStressSummaryResponse, StressComparisonResponse
+
 
 def summarize_run(db: Session, run: StressTestRun, scenario: StressScenario) -> PortfolioStressSummaryResponse:
     largest_loss_pos = None
@@ -47,7 +49,7 @@ def summarize_run(db: Session, run: StressTestRun, scenario: StressScenario) -> 
 def compare_scenarios(
     db: Session,
     portfolio_id: int,
-    scenario_ids: List[int],
+    scenario_ids: list[int],
     valuation_date: date
 ) -> StressComparisonResponse:
     summaries = []

@@ -1,7 +1,9 @@
-from sqlalchemy.orm import Session
 from datetime import date
+
 from app.risk_control.enums import MetricType
 from app.risk_control.types import NormalizedMetricResult
+from sqlalchemy.orm import Session
+
 
 class DeterministicRiskAdapter:
     def get_value(self, metric: MetricType, portfolio_id: int, valuation_date: date, db: Session) -> NormalizedMetricResult:

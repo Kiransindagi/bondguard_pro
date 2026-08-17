@@ -1,5 +1,6 @@
 from .types import LiquidityClass
 
+
 def classify_liquidity(score: float) -> LiquidityClass:
     if score >= 80:
         return LiquidityClass.HIGH

@@ -1,10 +1,11 @@
-from typing import List
 from decimal import Decimal
+
+from .exceptions import InvalidInputError, SolverError
 from .types import CashFlow
 from .valuation import dirty_price_from_ytm
-from .exceptions import SolverError, InvalidInputError
 
-def calculate_ytm(cashflows: List[CashFlow], dirty_price: Decimal, frequency: str, 
+
+def calculate_ytm(cashflows: list[CashFlow], dirty_price: Decimal, frequency: str, 
                   guess: float = 0.05, tol: float = 1e-8, max_iter: int = 100) -> Decimal:
     """
     Calculate Yield to Maturity (YTM) given a dirty price and cash flows.

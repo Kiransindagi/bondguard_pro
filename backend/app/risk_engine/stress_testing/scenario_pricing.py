@@ -1,14 +1,20 @@
 from datetime import date
 from decimal import Decimal
+
 from app.db.models import Bond, Position
-from app.risk_engine.types import BondRiskResult
+from app.risk_engine.cashflows import (
+    calculate_accrued_interest,
+    generate_remaining_cashflows,
+)
 from app.risk_engine.curve import YieldCurve
+from app.risk_engine.types import BondRiskResult
 from app.risk_engine.valuation import clean_price_from_ytm
-from app.risk_engine.cashflows import generate_remaining_cashflows, calculate_accrued_interest
 from app.risk_engine.yield_solver import calculate_ytm
-from .types import CalculationMethod
+
 from .curve_shocks import interpolate_rate_shock
 from .spread_shocks import resolve_spread_shock
+from .types import CalculationMethod
+
 
 def get_base_yield(bond: Bond, valuation_date: date, curve: YieldCurve, issue_price: Decimal) -> Decimal:
     """
@@ -25,7 +31,7 @@ def get_base_yield(bond: Bond, valuation_date: date, curve: YieldCurve, issue_pr
         bond.day_count_convention
     )
     if not cf:
-        return Decimal('0')
+        return Decimal(0)
     accrued = calculate_accrued_interest(
         valuation_date, 
         bond.issue_date, 
@@ -49,7 +55,7 @@ def get_base_yield(bond: Bond, valuation_date: date, curve: YieldCurve, issue_pr
     
     # Simple proxy: if corporate, add a fixed spread just to get a base yield, or just use rate.
     # For scenario pricing, base yield is rate + some spread.
-    base_spread = Decimal('0')
+    base_spread = Decimal(0)
     if getattr(bond, "bond_type", None) == "Corporate":
         base_spread = Decimal('0.01') # 100 bps base spread proxy
         
@@ -97,7 +103,7 @@ def calculate_scenario_pricing(
         
         stressed_mv = base_mv + pnl
         # rough clean price estimate
-        stressed_price = (stressed_mv / (position.quantity * bond.face_value)) * Decimal('100')
+        stressed_price = (stressed_mv / (position.quantity * bond.face_value)) * Decimal(100)
         return stressed_price, stressed_mv
         
     elif method == CalculationMethod.FULL_REVALUATION:
@@ -113,7 +119,7 @@ def calculate_scenario_pricing(
         )
         if not cf:
             # Matured bond
-            return Decimal('100'), Decimal('0')
+            return Decimal(100), Decimal(0)
             
         accrued = calculate_accrued_interest(
             valuation_date, 
@@ -132,11 +138,10 @@ def calculate_scenario_pricing(
             return base_risk.clean_price, base_risk.market_value
         
         # Ensure yield domain validity (cannot be <= -100%)
-        if stressed_yield <= Decimal('-0.99'):
-            stressed_yield = Decimal('-0.99')
+        stressed_yield = max(Decimal('-0.99'), stressed_yield)
             
         stressed_clean = clean_price_from_ytm(cf, stressed_yield, bond.coupon_frequency, accrued)
-        stressed_mv = position.quantity * bond.face_value * (stressed_clean / Decimal('100'))
+        stressed_mv = position.quantity * bond.face_value * (stressed_clean / Decimal(100))
         
         return stressed_clean, stressed_mv
         

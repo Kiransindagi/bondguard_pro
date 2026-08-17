@@ -1,8 +1,9 @@
 import argparse
-from datetime import datetime
-from app.db.database import SessionLocal
-from app.data.ingestion import DataIngestor
 import logging
+from datetime import datetime
+
+from app.data.ingestion import DataIngestor
+from app.db.database import SessionLocal
 
 logging.basicConfig(level=logging.INFO)
 

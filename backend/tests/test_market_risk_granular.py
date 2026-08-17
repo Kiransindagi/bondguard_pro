@@ -1,6 +1,8 @@
+from datetime import date
+
 import numpy as np
 import pandas as pd
-from datetime import date
+
 
 def test_availability_missing_portfolio(client):
     response = client.get("/api/v1/market-risk/portfolios/999999/availability")
@@ -75,7 +77,10 @@ def test_backtest_zero_exceptions():
     assert res["exceptions"] == 0
 
 def test_marginal_var_scaling():
-    from app.risk_engine.market_risk import calculate_parametric_var, calculate_marginal_var
+    from app.risk_engine.market_risk import (
+        calculate_marginal_var,
+        calculate_parametric_var,
+    )
     exp = np.array([100.0, 100.0])
     cov = np.array([[0.01, 0], [0, 0.01]])
     var = calculate_parametric_var(exp, cov, 0.95)

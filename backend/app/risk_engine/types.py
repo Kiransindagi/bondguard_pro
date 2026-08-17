@@ -1,7 +1,8 @@
-from pydantic import BaseModel
-from typing import Optional
 from datetime import date
 from decimal import Decimal
+
+from pydantic import BaseModel
+
 
 class CashFlow(BaseModel):
     payment_date: date
@@ -19,9 +20,9 @@ class BondRiskInput(BaseModel):
     maturity_date: date
     day_count_convention: str
     valuation_date: date
-    clean_price: Optional[Decimal] = None
-    ytm: Optional[Decimal] = None
-    quantity: Decimal = Decimal('1')  # for scaling position risk
+    clean_price: Decimal | None = None
+    ytm: Decimal | None = None
+    quantity: Decimal = Decimal(1)  # for scaling position risk
 
 class BondRiskResult(BaseModel):
     bond_id: int

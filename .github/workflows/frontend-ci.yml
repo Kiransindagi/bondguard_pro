@@ -23,6 +23,6 @@ jobs:
     - name: Lint
       run: npm run lint
     - name: Test
-      run: npm run test || echo "No tests configured yet"
+      run: npm run test
     - name: Build
       run: npm run build

@@ -1,5 +1,6 @@
 from .types import StressScenarioType
 
+
 def get_stressed_multipliers(scenario: StressScenarioType, bond_type: str) -> (float, float):
     """Returns (spread_multiplier, capacity_multiplier)"""
     if scenario == StressScenarioType.NORMAL:

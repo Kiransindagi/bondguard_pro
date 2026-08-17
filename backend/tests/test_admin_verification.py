@@ -1,14 +1,15 @@
-import pytest
-from decimal import Decimal
 from datetime import date
+from decimal import Decimal
+
+import pytest
+from app.schemas.bond import BondCreate, BondUpdate
+from app.schemas.portfolio import PortfolioCreate, PortfolioUpdate
+from app.schemas.transaction import TransactionCreate
+from app.services.bond import BondService
+from app.services.portfolio import PortfolioService
+from app.services.position import PositionService
 from sqlalchemy.orm import Session
 
-from app.schemas.portfolio import PortfolioCreate, PortfolioUpdate
-from app.schemas.bond import BondCreate, BondUpdate
-from app.schemas.transaction import TransactionCreate
-from app.services.portfolio import PortfolioService
-from app.services.bond import BondService
-from app.services.position import PositionService
 
 def test_admin_portfolio_lifecycle(db_session: Session):
     port_svc = PortfolioService(db_session)
@@ -79,7 +80,7 @@ def test_bond_schema_invalid_identifiers():
         BondCreate(
             isin="US123",
             issuer_name="X", bond_name="Y",
-            face_value=Decimal('100'), coupon_rate=Decimal('0.05'),
+            face_value=Decimal(100), coupon_rate=Decimal('0.05'),
             coupon_frequency="annual", issue_date=date(2020,1,1), maturity_date=date(2030,1,1),
             day_count_convention="30/360", bond_type="Corp"
         )
@@ -90,7 +91,7 @@ def test_bond_schema_invalid_identifiers():
             isin="US1234567890",
             cusip="12345678901234",
             issuer_name="X", bond_name="Y",
-            face_value=Decimal('100'), coupon_rate=Decimal('0.05'),
+            face_value=Decimal(100), coupon_rate=Decimal('0.05'),
             coupon_frequency="annual", issue_date=date(2020,1,1), maturity_date=date(2030,1,1),
             day_count_convention="30/360", bond_type="Corp"
         )
@@ -104,7 +105,7 @@ def test_transaction_propagation_and_average_cost(db_session: Session):
     bond = bond_svc.create_bond(BondCreate(
         isin="US2222222222",
         issuer_name="Issuer B", bond_name="Bond B",
-        face_value=Decimal('1000'), coupon_rate=Decimal('0.04'),
+        face_value=Decimal(1000), coupon_rate=Decimal('0.04'),
         coupon_frequency="annual", issue_date=date(2020,1,1), maturity_date=date(2030,1,1),
         day_count_convention="30/360", bond_type="Corp"
     ))
@@ -116,7 +117,7 @@ def test_transaction_propagation_and_average_cost(db_session: Session):
         transaction_type="BUY",
         trade_date=date(2024, 1, 1),
         settlement_date=date(2024, 1, 2),
-        quantity=Decimal('100'),
+        quantity=Decimal(100),
         clean_price=Decimal('98.0'),
         total_consideration=Decimal('98000.0')
     ))
@@ -128,7 +129,7 @@ def test_transaction_propagation_and_average_cost(db_session: Session):
         transaction_type="BUY",
         trade_date=date(2024, 1, 15),
         settlement_date=date(2024, 1, 16),
-        quantity=Decimal('100'),
+        quantity=Decimal(100),
         clean_price=Decimal('102.0'),
         total_consideration=Decimal('102000.0')
     ))
@@ -139,7 +140,7 @@ def test_transaction_propagation_and_average_cost(db_session: Session):
     pos = positions[0]
     
     # Quantity is total face-value units: 200 units
-    assert pos.quantity == Decimal('200')
+    assert pos.quantity == Decimal(200)
     
     # Average cost: (100 * 98.0 + 100 * 102.0) / 200 = 100.0
     assert pos.average_cost == Decimal('100.0')

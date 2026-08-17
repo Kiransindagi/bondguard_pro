@@ -1,12 +1,12 @@
-import jwt
-from datetime import datetime, timedelta, timezone
 import secrets
-from typing import Optional
+from datetime import datetime, timedelta, timezone
 
-from app.core.config import settings
+import jwt
 from app.auth.exceptions import CredentialsException
+from app.core.config import settings
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta

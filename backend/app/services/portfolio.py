@@ -1,9 +1,9 @@
-from sqlalchemy.orm import Session
+from decimal import Decimal
+
 from app.db.models import Portfolio, Position
 from app.schemas.portfolio import PortfolioCreate, PortfolioUpdate
-from typing import List, Optional
-from decimal import Decimal
-from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
 
 class PortfolioService:
     def __init__(self, db: Session):
@@ -16,16 +16,16 @@ class PortfolioService:
         self.db.refresh(port)
         return port
 
-    def get_portfolio(self, portfolio_id: int) -> Optional[Portfolio]:
+    def get_portfolio(self, portfolio_id: int) -> Portfolio | None:
         return self.db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
 
-    def list_portfolios(self, active_only: bool = False) -> List[Portfolio]:
+    def list_portfolios(self, active_only: bool = False) -> list[Portfolio]:
         query = self.db.query(Portfolio)
         if active_only:
             query = query.filter(Portfolio.is_active == True, Portfolio.status == "ACTIVE")
         return query.all()
 
-    def update_portfolio(self, portfolio_id: int, schema: PortfolioUpdate) -> Optional[Portfolio]:
+    def update_portfolio(self, portfolio_id: int, schema: PortfolioUpdate) -> Portfolio | None:
         port = self.get_portfolio(portfolio_id)
         if not port:
             return None
@@ -51,8 +51,8 @@ class PortfolioService:
             return None
         
         positions = self.db.query(Position).filter(Position.portfolio_id == portfolio_id).all()
-        tmv = sum([p.market_value for p in positions if p.market_value], Decimal('0'))
-        tpnl = sum([p.unrealized_pnl for p in positions if p.unrealized_pnl], Decimal('0'))
+        tmv = sum([p.market_value for p in positions if p.market_value], Decimal(0))
+        tpnl = sum([p.unrealized_pnl for p in positions if p.unrealized_pnl], Decimal(0))
         
         return {
             "id": port.id,

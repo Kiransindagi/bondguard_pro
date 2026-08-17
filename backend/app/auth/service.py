@@ -1,13 +1,12 @@
-from sqlalchemy.orm import Session
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Tuple
 import logging
+from datetime import datetime, timedelta, timezone
 
-from app.db.models import User, RefreshToken
+from app.auth.exceptions import CredentialsException
 from app.auth.password import verify_password
 from app.auth.tokens import create_access_token, generate_refresh_token
-from app.auth.exceptions import CredentialsException
 from app.core.config import settings
+from app.db.models import RefreshToken, User
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,7 @@ FAILED_LOGINS = {}
 
 class AuthService:
     @staticmethod
-    def authenticate_user(db: Session, username_or_email: str, password: str) -> Optional[User]:
+    def authenticate_user(db: Session, username_or_email: str, password: str) -> User | None:
         now = datetime.now(timezone.utc)
         
         # Check lockout
@@ -59,7 +58,7 @@ class AuthService:
         return user
 
     @staticmethod
-    def create_auth_session(db: Session, user: User) -> Tuple[str, str]:
+    def create_auth_session(db: Session, user: User) -> tuple[str, str]:
         # Generate access token
         # Include user info and permissions list in access token payload
         permissions = set()
@@ -90,7 +89,7 @@ class AuthService:
         return access_token, token_str
 
     @staticmethod
-    def rotate_refresh_token(db: Session, refresh_token_str: str) -> Tuple[str, str]:
+    def rotate_refresh_token(db: Session, refresh_token_str: str) -> tuple[str, str]:
         db_token = db.query(RefreshToken).filter(RefreshToken.token == refresh_token_str).first()
         if not db_token:
             raise CredentialsException("Invalid refresh token")

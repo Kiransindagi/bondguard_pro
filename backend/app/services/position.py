@@ -1,8 +1,10 @@
-from sqlalchemy.orm import Session
 from decimal import Decimal
-from app.db.models import Position, Transaction, Bond
+
+from app.db.models import Bond, Position, Transaction
 from app.schemas.transaction import TransactionCreate
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
 
 class PositionService:
     def __init__(self, db: Session):
@@ -27,8 +29,8 @@ class PositionService:
             position = Position(
                 portfolio_id=schema.portfolio_id,
                 bond_id=schema.bond_id,
-                quantity=Decimal('0'),
-                average_cost=Decimal('0')
+                quantity=Decimal(0),
+                average_cost=Decimal(0)
             )
             self.db.add(position)
 
@@ -55,8 +57,8 @@ class PositionService:
             cost_basis = (position.quantity * bond.face_value * position.average_cost) / Decimal('100.0')
             position.unrealized_pnl = position.market_value - cost_basis
         else:
-            position.market_value = Decimal('0')
-            position.unrealized_pnl = Decimal('0')
+            position.market_value = Decimal(0)
+            position.unrealized_pnl = Decimal(0)
 
         trade_date = schema.trade_date
         settlement_date = schema.settlement_date or trade_date
@@ -89,8 +91,8 @@ class PositionService:
         for tx in txs:
             b_id = tx.bond_id
             if b_id not in expected_qtys:
-                expected_qtys[b_id] = Decimal('0')
-                expected_costs[b_id] = Decimal('0')
+                expected_qtys[b_id] = Decimal(0)
+                expected_costs[b_id] = Decimal(0)
                 
             qty = tx.quantity
             price = tx.clean_price
@@ -101,9 +103,9 @@ class PositionService:
                     expected_costs[b_id] = ((expected_qtys[b_id] * expected_costs[b_id]) + (qty * price)) / new_qty
                 expected_qtys[b_id] = new_qty
             elif tx.transaction_type == "SELL":
-                expected_qtys[b_id] = max(Decimal('0'), expected_qtys[b_id] - qty)
+                expected_qtys[b_id] = max(Decimal(0), expected_qtys[b_id] - qty)
             elif tx.transaction_type == "ADJUSTMENT":
-                expected_qtys[b_id] = max(Decimal('0'), expected_qtys[b_id] + qty)
+                expected_qtys[b_id] = max(Decimal(0), expected_qtys[b_id] + qty)
                 if price > 0:
                     expected_costs[b_id] = price
 
@@ -120,8 +122,8 @@ class PositionService:
                 pos = Position(
                     portfolio_id=portfolio_id,
                     bond_id=b_id,
-                    quantity=Decimal('0'),
-                    average_cost=Decimal('0'),
+                    quantity=Decimal(0),
+                    average_cost=Decimal(0),
                     current_clean_price=expected_costs[b_id] if expected_costs[b_id] > 0 else Decimal('100.0')
                 )
                 self.db.add(pos)
@@ -140,16 +142,15 @@ class PositionService:
                 cost_basis = (pos.quantity * bond.face_value * pos.average_cost) / Decimal('100.0')
                 pos.unrealized_pnl = pos.market_value - cost_basis
             else:
-                pos.market_value = Decimal('0')
-                pos.unrealized_pnl = Decimal('0')
+                pos.market_value = Decimal(0)
+                pos.unrealized_pnl = Decimal(0)
                 
         for b_id, pos in positions_map.items():
-            if b_id not in expected_qtys:
-                if pos.quantity != 0:
-                    pos.quantity = Decimal('0')
-                    pos.market_value = Decimal('0')
-                    pos.unrealized_pnl = Decimal('0')
-                    reconciled = False
+            if b_id not in expected_qtys and pos.quantity != 0:
+                pos.quantity = Decimal(0)
+                pos.market_value = Decimal(0)
+                pos.unrealized_pnl = Decimal(0)
+                reconciled = False
                     
         self.db.commit()
         return reconciled

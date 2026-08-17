@@ -1,7 +1,20 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Date, Float, ForeignKey, UniqueConstraint, Numeric, JSON
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 from app.db.database import Base
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
 
 class SystemMetadata(Base):
     __tablename__ = "system_metadata"
@@ -361,12 +374,10 @@ class Breach(Base):
     breach_amount = Column(Numeric(18, 6), nullable=False)
     opened_at = Column(DateTime(timezone=True), nullable=False)
     acknowledged_at = Column(DateTime(timezone=True), nullable=True)
-    under_review_at = Column(DateTime(timezone=True), nullable=True)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
     assigned_to = Column(String, nullable=True)
     assigned_user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     acknowledgement_note = Column(String, nullable=True)
-    review_notes = Column(String, nullable=True)
     resolution_note = Column(String, nullable=True)
     escalation_level = Column(Integer, default=0, nullable=False)
     sla_deadline = Column(DateTime(timezone=True), nullable=True)
@@ -630,4 +641,3 @@ class SavedScenarioRun(Base):
     scenario = relationship("SavedScenario")
     portfolio = relationship("Portfolio")
     executor = relationship("User")
-

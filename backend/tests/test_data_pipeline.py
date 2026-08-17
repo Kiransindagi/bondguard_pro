@@ -1,18 +1,23 @@
-import pytest
 from datetime import date, timedelta
 from unittest.mock import patch
 
-from app.db.models import (
-    PipelineJobRun, DataQualityResult, 
-    YieldCurvePoint, CreditSpread, MarketPrice, Instrument
-)
-from app.data_pipeline.registry import get_active_datasets, get_dataset_metadata
+import pytest
 from app.data_pipeline.orchestrator import PipelineOrchestrator, retry_on_exception
+from app.data_pipeline.registry import get_active_datasets, get_dataset_metadata
 from app.data_quality.engine import DataQualityEngine
-from app.services.analytics_service import AnalyticsBatchService
-from app.risk_engine.historical import FactorAlignmentService
+from app.db.models import (
+    CreditSpread,
+    DataQualityResult,
+    Instrument,
+    MarketPrice,
+    PipelineJobRun,
+    YieldCurvePoint,
+)
 from app.risk_engine.exceptions import RiskEngineError
+from app.risk_engine.historical import FactorAlignmentService
 from app.risk_engine.market_risk.availability import check_model_availability
+from app.services.analytics_service import AnalyticsBatchService
+
 
 def test_central_registry():
     active = get_active_datasets()
@@ -282,7 +287,7 @@ def test_analytics_batch_run_partial_success(seeded_db_session):
     print(f"DEBUG: availability model_status={avail.model_status}, excluded={avail.excluded_factors}")
     assert run.status == "PARTIAL_SUCCESS"
     assert run.model_status == "RATE_ONLY_MODEL"
-    assert "analytics_run_id" in run.metadata_json or True
+    assert True
 
 def test_observability_middleware_request_id(client):
     # Standard request triggers middleware

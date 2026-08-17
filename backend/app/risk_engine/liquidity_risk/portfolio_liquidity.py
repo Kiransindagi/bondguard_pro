@@ -1,14 +1,16 @@
-from typing import List, Dict, Any
 from decimal import Decimal
+from typing import Any
+
 from .types import LiquidityClass
 
-def aggregate_portfolio_liquidity(position_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+
+def aggregate_portfolio_liquidity(position_results: list[dict[str, Any]]) -> dict[str, Any]:
     total_mv = sum(Decimal(str(r['market_value'])) for r in position_results)
     if total_mv <= 0:
         return {
-            'portfolio_market_value': Decimal('0'),
+            'portfolio_market_value': Decimal(0),
             'weighted_liquidity_score': 0.0,
-            'estimated_total_liquidation_cost': Decimal('0'),
+            'estimated_total_liquidation_cost': Decimal(0),
             'estimated_total_liquidation_cost_bps': 0.0,
             'weighted_days_to_liquidate': 0.0,
             'maximum_days_to_liquidate': 0,
@@ -16,19 +18,19 @@ def aggregate_portfolio_liquidity(position_results: List[Dict[str, Any]]) -> Dic
             'medium_liquidity_weight': 0.0,
             'low_liquidity_weight': 0.0,
             'very_low_liquidity_weight': 0.0,
-            'very_low_liquidity_market_value': Decimal('0'),
+            'very_low_liquidity_market_value': Decimal(0),
             'largest_illiquid_position': None
         }
 
     w_score = 0.0
     w_days = 0.0
     max_days = 0
-    total_cost = Decimal('0')
+    total_cost = Decimal(0)
     
-    classes = {c.value: Decimal('0') for c in LiquidityClass}
+    classes = {c.value: Decimal(0) for c in LiquidityClass}
     
     largest_illiquid = None
-    max_illiquid_mv = Decimal('0')
+    max_illiquid_mv = Decimal(0)
 
     for r in position_results:
         mv = Decimal(str(r['market_value']))
@@ -37,8 +39,7 @@ def aggregate_portfolio_liquidity(position_results: List[Dict[str, Any]]) -> Dic
         w_score += r['liquidity_score'] * weight
         w_days += r['raw_days_to_liquidate'] * weight
         
-        if r['estimated_trading_days_to_liquidate'] > max_days:
-            max_days = r['estimated_trading_days_to_liquidate']
+        max_days = max(max_days, r['estimated_trading_days_to_liquidate'])
             
         total_cost += r['estimated_liquidation_cost']
         classes[r['liquidity_class']] += mv

@@ -1,7 +1,8 @@
-import pytest
 from datetime import date
 
-from app.db.models import RiskLimit, Portfolio
+import pytest
+from app.db.models import Portfolio, RiskLimit
+
 
 @pytest.fixture(scope="function")
 def setup_db(db_session):

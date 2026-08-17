@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List
-from app.db.database import get_db
-from app.db.models import DataQualityRun, DataQualityResult
-from app.schemas.data_quality import DataQualityRunResponse, DatasetQualitySummary, DataQualityResultResponse
-from app.data_pipeline.registry import get_active_datasets, get_dataset_metadata
-from app.data_quality.engine import DataQualityEngine
 
 from app.auth.dependencies import PermissionChecker
 from app.auth.permissions import AUDIT_READ, QUALITY_RUN
+from app.data_pipeline.registry import get_active_datasets, get_dataset_metadata
+from app.data_quality.engine import DataQualityEngine
+from app.db.database import get_db
+from app.db.models import DataQualityResult, DataQualityRun
+from app.schemas.data_quality import (
+    DataQualityResultResponse,
+    DataQualityRunResponse,
+    DatasetQualitySummary,
+)
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -19,7 +22,7 @@ def trigger_quality_run(db: Session = Depends(get_db)):
         run = engine.run_quality_suite()
         return run
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Data quality run failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Data quality run failed: {e!s}")
 
 @router.get("/summary", response_model=DataQualityRunResponse, dependencies=[Depends(PermissionChecker(AUDIT_READ))])
 def get_latest_quality_summary(db: Session = Depends(get_db)):
@@ -32,7 +35,7 @@ def get_latest_quality_summary(db: Session = Depends(get_db)):
     latest_run.results = results
     return latest_run
 
-@router.get("/datasets", response_model=List[DatasetQualitySummary], dependencies=[Depends(PermissionChecker(AUDIT_READ))])
+@router.get("/datasets", response_model=list[DatasetQualitySummary], dependencies=[Depends(PermissionChecker(AUDIT_READ))])
 def get_datasets_quality_status(db: Session = Depends(get_db)):
     active_datasets = get_active_datasets()
     summaries = []
@@ -64,7 +67,7 @@ def get_datasets_quality_status(db: Session = Depends(get_db)):
         
     return summaries
 
-@router.get("/datasets/{dataset_key}", response_model=List[DataQualityResultResponse], dependencies=[Depends(PermissionChecker(AUDIT_READ))])
+@router.get("/datasets/{dataset_key}", response_model=list[DataQualityResultResponse], dependencies=[Depends(PermissionChecker(AUDIT_READ))])
 def get_dataset_quality_details(dataset_key: str, db: Session = Depends(get_db)):
     meta = get_dataset_metadata(dataset_key)
     if not meta:

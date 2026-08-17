@@ -1,9 +1,10 @@
 import math
-from typing import Dict, Any
+from typing import Any
+
 
 class ScenarioValidator:
     @staticmethod
-    def validate_shocks(shocks: Dict[str, Any]):
+    def validate_shocks(shocks: dict[str, Any]):
         """
         Enforce validation bounds and sanity checks on scenario shock inputs.
         """

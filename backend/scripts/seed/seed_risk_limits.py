@@ -1,6 +1,8 @@
+from datetime import date
+
 from app.db.database import SessionLocal
 from app.db.models import RiskLimit
-from datetime import date
+
 
 def seed_limits(db=None):
     is_local = False

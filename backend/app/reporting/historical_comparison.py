@@ -1,20 +1,22 @@
-from app.db.models import PortfolioRiskSnapshot
 from decimal import Decimal
-from typing import Optional, Dict, Any
+from typing import Any
 
-def _safe_pct(curr: Optional[Decimal], prev: Optional[Decimal]) -> Optional[float]:
+from app.db.models import PortfolioRiskSnapshot
+
+
+def _safe_pct(curr: Decimal | None, prev: Decimal | None) -> float | None:
     if curr is None or prev is None:
         return None
     if prev == 0:
         return None
     return float((curr - prev) / abs(prev) * 100)
 
-def _safe_diff(curr: Optional[Decimal], prev: Optional[Decimal]) -> Optional[float]:
+def _safe_diff(curr: Decimal | None, prev: Decimal | None) -> float | None:
     if curr is None or prev is None:
         return None
     return float(curr - prev)
 
-def compare_snapshots(current: PortfolioRiskSnapshot, previous: Optional[PortfolioRiskSnapshot]) -> Dict[str, Any]:
+def compare_snapshots(current: PortfolioRiskSnapshot, previous: PortfolioRiskSnapshot | None) -> dict[str, Any]:
     if not previous:
         return {}
 

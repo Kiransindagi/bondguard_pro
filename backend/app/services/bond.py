@@ -1,7 +1,8 @@
-from sqlalchemy.orm import Session
+
 from app.db.models import Bond
 from app.schemas.bond import BondCreate, BondUpdate
-from typing import List, Optional
+from sqlalchemy.orm import Session
+
 
 class BondService:
     def __init__(self, db: Session):
@@ -14,12 +15,12 @@ class BondService:
         self.db.refresh(bond)
         return bond
 
-    def get_bond(self, bond_id: int) -> Optional[Bond]:
+    def get_bond(self, bond_id: int) -> Bond | None:
         return self.db.query(Bond).filter(Bond.id == bond_id).first()
 
-    def search_bonds(self, issuer: Optional[str] = None, rating: Optional[str] = None, 
-                     sector: Optional[str] = None, maturity_from: Optional[str] = None, 
-                     maturity_to: Optional[str] = None) -> List[Bond]:
+    def search_bonds(self, issuer: str | None = None, rating: str | None = None, 
+                     sector: str | None = None, maturity_from: str | None = None, 
+                     maturity_to: str | None = None) -> list[Bond]:
         query = self.db.query(Bond)
         if issuer:
             query = query.filter(Bond.issuer_name.ilike(f"%{issuer}%"))
@@ -33,7 +34,7 @@ class BondService:
             query = query.filter(Bond.maturity_date <= maturity_to)
         return query.all()
 
-    def update_bond(self, bond_id: int, schema: BondUpdate) -> Optional[Bond]:
+    def update_bond(self, bond_id: int, schema: BondUpdate) -> Bond | None:
         bond = self.get_bond(bond_id)
         if not bond:
             return None

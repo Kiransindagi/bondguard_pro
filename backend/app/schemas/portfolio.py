@@ -1,13 +1,14 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from datetime import datetime
 from decimal import Decimal
 
+from pydantic import BaseModel, ConfigDict
+
+
 class PortfolioBase(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     base_currency: str = "USD"
-    benchmark: Optional[str] = None
+    benchmark: str | None = None
     is_active: bool = True
     status: str = "ACTIVE"
 
@@ -15,12 +16,12 @@ class PortfolioCreate(PortfolioBase):
     pass
 
 class PortfolioUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    base_currency: Optional[str] = None
-    benchmark: Optional[str] = None
-    is_active: Optional[bool] = None
-    status: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
+    base_currency: str | None = None
+    benchmark: str | None = None
+    is_active: bool | None = None
+    status: str | None = None
 
 class PortfolioResponse(PortfolioBase):
     id: int

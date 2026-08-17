@@ -1,21 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 from datetime import date
-from typing import Optional
 from decimal import Decimal
 
-from app.db.database import get_db
-from app.db.models import Bond, Portfolio
 from app.auth.dependencies import PermissionChecker
 from app.auth.permissions import RISK_READ
-from app.risk_engine.advanced_analytics import AdvancedAnalyticsCalculator, CarryRollDownCalculator, PnLExplainCalculator
+from app.db.database import get_db
+from app.db.models import Bond, Portfolio
+from app.risk_engine.advanced_analytics import (
+    AdvancedAnalyticsCalculator,
+    CarryRollDownCalculator,
+    PnLExplainCalculator,
+)
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 @router.get("/bonds/{bond_id}/key-rate-duration", dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_bond_key_rate_duration(
     bond_id: int,
-    valuation_date: Optional[date] = None,
+    valuation_date: date | None = None,
     clean_price: Decimal = Query(Decimal('100.0')),
     db: Session = Depends(get_db)
 ):
@@ -28,13 +31,13 @@ def get_bond_key_rate_duration(
         bond=bond,
         valuation_date=val_date,
         clean_price=clean_price,
-        quantity=Decimal('1')
+        quantity=Decimal(1)
     )
 
 @router.get("/portfolios/{portfolio_id}/key-rate-duration", dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_portfolio_key_rate_duration(
     portfolio_id: int,
-    valuation_date: Optional[date] = None,
+    valuation_date: date | None = None,
     db: Session = Depends(get_db)
 ):
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
@@ -59,12 +62,12 @@ def get_portfolio_key_rate_duration(
         )
         
         total_mv += mv
-        for k in weighted_krd.keys():
+        for k in weighted_krd:
             weighted_krd[k] += krd[k] * mv
             
     # Calculate average
     if total_mv > 0:
-        for k in weighted_krd.keys():
+        for k in weighted_krd:
             weighted_krd[k] = round(weighted_krd[k] / total_mv, 6)
             
     return {
@@ -76,7 +79,7 @@ def get_portfolio_key_rate_duration(
 @router.get("/portfolios/{portfolio_id}/bucketed-dv01", dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_portfolio_bucketed_dv01(
     portfolio_id: int,
-    valuation_date: Optional[date] = None,
+    valuation_date: date | None = None,
     db: Session = Depends(get_db)
 ):
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
@@ -98,11 +101,11 @@ def get_portfolio_bucketed_dv01(
             quantity=pos.quantity
         )
         
-        for k in total_dv01.keys():
+        for k in total_dv01:
             total_dv01[k] += dv01_buckets[k]
             
     # Round totals
-    for k in total_dv01.keys():
+    for k in total_dv01:
         total_dv01[k] = round(total_dv01[k], 2)
         
     return {
@@ -113,7 +116,7 @@ def get_portfolio_bucketed_dv01(
 @router.get("/portfolios/{portfolio_id}/spread-risk", dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_portfolio_spread_risk(
     portfolio_id: int,
-    valuation_date: Optional[date] = None,
+    valuation_date: date | None = None,
     db: Session = Depends(get_db)
 ):
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
@@ -164,7 +167,7 @@ def get_portfolio_spread_risk(
 @router.get("/portfolios/{portfolio_id}/carry-roll-down", dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_portfolio_carry_roll_down(
     portfolio_id: int,
-    valuation_date: Optional[date] = None,
+    valuation_date: date | None = None,
     horizon_months: int = Query(1),
     db: Session = Depends(get_db)
 ):
@@ -222,7 +225,7 @@ def get_portfolio_pnl_explain(
     rate_shock_bps: float = Query(0.0),
     spread_shock_bps: float = Query(0.0),
     actual_pnl: float = Query(0.0),
-    valuation_date: Optional[date] = None,
+    valuation_date: date | None = None,
     db: Session = Depends(get_db)
 ):
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
@@ -270,7 +273,7 @@ def get_portfolio_pnl_explain(
     totals["residual"] = actual_pnl - totals["explained_pnl"]
     
     # Round all values
-    for k in totals.keys():
+    for k in totals:
         totals[k] = round(totals[k], 2)
         
     return totals

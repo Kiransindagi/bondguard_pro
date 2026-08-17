@@ -1,14 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from datetime import date
-from typing import List
+
+from app.auth.dependencies import PermissionChecker
+from app.auth.permissions import ANALYTICS_RUN, RISK_READ
 from app.db.database import get_db
 from app.db.models import AnalyticsRun, PortfolioRiskSnapshot
 from app.schemas.analytics import AnalyticsRunRequest, AnalyticsRunResponse
 from app.services.analytics_service import AnalyticsBatchService
-
-from app.auth.dependencies import PermissionChecker
-from app.auth.permissions import RISK_READ, ANALYTICS_RUN
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -19,7 +18,7 @@ def trigger_portfolio_analytics(portfolio_id: int, req: AnalyticsRunRequest, db:
         run = AnalyticsBatchService.run_batch_analytics(db, portfolio_id, val_date)
         return run
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Batch run execution failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Batch run execution failed: {e!s}")
 
 @router.get("/portfolios/{portfolio_id}/latest", dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_latest_portfolio_analytics(portfolio_id: int, db: Session = Depends(get_db)):
@@ -43,7 +42,7 @@ def get_latest_portfolio_analytics(portfolio_id: int, db: Session = Depends(get_
         "snapshot": snapshot
     }
 
-@router.get("/portfolios/{portfolio_id}/history", response_model=List[AnalyticsRunResponse], dependencies=[Depends(PermissionChecker(RISK_READ))])
+@router.get("/portfolios/{portfolio_id}/history", response_model=list[AnalyticsRunResponse], dependencies=[Depends(PermissionChecker(RISK_READ))])
 def get_portfolio_analytics_history(portfolio_id: int, limit: int = 50, db: Session = Depends(get_db)):
     history = db.query(AnalyticsRun).filter(
         AnalyticsRun.portfolio_id == portfolio_id

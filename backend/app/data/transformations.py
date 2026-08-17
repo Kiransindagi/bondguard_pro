@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import Any
 
 # Tenor mapping from series ID to years
 TENOR_MAP = {
@@ -8,7 +8,7 @@ TENOR_MAP = {
     "DGS30": 30.0
 }
 
-def transform_fred_to_yield_curve(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def transform_fred_to_yield_curve(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     transformed = []
     for r in records:
         if r["series_id"] in TENOR_MAP:
@@ -21,7 +21,7 @@ def transform_fred_to_yield_curve(records: List[Dict[str, Any]]) -> List[Dict[st
             })
     return transformed
 
-def transform_fred_to_credit_spread(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def transform_fred_to_credit_spread(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     transformed = []
     for r in records:
         spread_type = None
@@ -43,7 +43,7 @@ def transform_fred_to_credit_spread(records: List[Dict[str, Any]]) -> List[Dict[
             })
     return transformed
 
-def transform_fred_to_macro(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def transform_fred_to_macro(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     transformed = []
     for r in records:
         metric_name = None

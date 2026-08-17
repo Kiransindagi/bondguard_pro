@@ -1,14 +1,17 @@
 from datetime import date
 from decimal import Decimal
-from sqlalchemy.orm import Session
-from app.db.models import Portfolio, StressScenario, StressTestRun, StressPositionResult
-from app.risk_engine.types import BondRiskInput
+
+from app.db.models import Portfolio, StressPositionResult, StressScenario, StressTestRun
 from app.risk_engine.position_risk import calculate_position_risk
-from .types import CalculationMethod, StressPositionResultResponse, StressRunResponse
-from .scenario_pricing import calculate_scenario_pricing
+from app.risk_engine.types import BondRiskInput
+from sqlalchemy.orm import Session
+
 from .curve_shocks import interpolate_rate_shock
-from .spread_shocks import resolve_spread_shock
 from .exceptions import StressCalculationError
+from .scenario_pricing import calculate_scenario_pricing
+from .spread_shocks import resolve_spread_shock
+from .types import CalculationMethod, StressPositionResultResponse, StressRunResponse
+
 
 def run_portfolio_stress_test(
     db: Session,
@@ -25,8 +28,8 @@ def run_portfolio_stress_test(
         
     calc_method = method or CalculationMethod(scenario.default_calculation_method)
     
-    total_base_mv = Decimal('0')
-    total_stressed_mv = Decimal('0')
+    total_base_mv = Decimal(0)
+    total_stressed_mv = Decimal(0)
     position_results = []
     
     try:
@@ -93,7 +96,7 @@ def run_portfolio_stress_test(
             position_results.append(res)
             
     except Exception as e:
-        raise StressCalculationError(f"Calculation failed: {str(e)}")
+        raise StressCalculationError(f"Calculation failed: {e!s}")
         
     total_pnl = total_stressed_mv - total_base_mv
     total_loss_percent = float(total_pnl / total_base_mv * 100) if total_base_mv != 0 else 0.0
@@ -151,7 +154,7 @@ def run_portfolio_stress_test(
             
     except Exception as e:
         db.rollback()
-        raise StressCalculationError(f"Persistence failed: {str(e)}")
+        raise StressCalculationError(f"Persistence failed: {e!s}")
         
     return StressRunResponse(
         id=run.id,

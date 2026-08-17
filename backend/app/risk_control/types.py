@@ -1,14 +1,16 @@
-﻿from pydantic import BaseModel
-from typing import Optional, Any
-from datetime import date
+﻿from datetime import date
 from decimal import Decimal
+from typing import Any
+
+from pydantic import BaseModel
+
 
 class NormalizedMetricResult(BaseModel):
     metric_type: str
-    value: Optional[Decimal]
+    value: Decimal | None
     unit: str
     calculation_source: str
     model_status: str
-    limitations: Optional[str]
+    limitations: str | None
     valuation_date: date
     metadata: dict[str, Any]

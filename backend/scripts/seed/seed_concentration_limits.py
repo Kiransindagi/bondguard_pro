@@ -1,6 +1,7 @@
 from app.db.database import SessionLocal
 from app.db.models import ConcentrationLimit
 
+
 def seed_limits(db=None):
     is_local = False
     if db is None:

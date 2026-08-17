@@ -1,10 +1,12 @@
 from datetime import date
 from decimal import Decimal
-from sqlalchemy.orm import Session
+
 from app.db.models import SavedScenario, SavedScenarioRun
+from app.risk_engine.stress_testing.types import CalculationMethod
 from app.scenario_lab.execution_service import ScenarioExecutionService
 from app.scenario_lab.scenario_builder import ScenarioBuilder
-from app.risk_engine.stress_testing.types import CalculationMethod
+from sqlalchemy.orm import Session
+
 
 class ScenarioComparisonService:
     @staticmethod

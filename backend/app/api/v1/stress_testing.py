@@ -1,28 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from typing import List
 from datetime import date
-from app.db.database import get_db
-from app.db.models import StressScenario, StressTestRun
-from app.risk_engine.stress_testing import (
-    StressScenarioCreate,
-    StressScenarioUpdate,
-    StressScenarioResponse,
-    StressRunRequest,
-    StressRunResponse,
-    StressComparisonRequest,
-    StressComparisonResponse,
-    run_portfolio_stress_test,
-    compare_scenarios,
-    StressTestingError
-)
 
 from app.auth.dependencies import PermissionChecker
 from app.auth.permissions import RISK_READ, STRESS_EXECUTE
+from app.db.database import get_db
+from app.db.models import StressScenario, StressTestRun
+from app.risk_engine.stress_testing import (
+    StressComparisonRequest,
+    StressComparisonResponse,
+    StressRunRequest,
+    StressRunResponse,
+    StressScenarioCreate,
+    StressScenarioResponse,
+    StressScenarioUpdate,
+    StressTestingError,
+    compare_scenarios,
+    run_portfolio_stress_test,
+)
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
-@router.get("/stress-scenarios", response_model=List[StressScenarioResponse], dependencies=[Depends(PermissionChecker(RISK_READ))])
+@router.get("/stress-scenarios", response_model=list[StressScenarioResponse], dependencies=[Depends(PermissionChecker(RISK_READ))])
 def list_scenarios(db: Session = Depends(get_db)):
     return db.query(StressScenario).all()
 

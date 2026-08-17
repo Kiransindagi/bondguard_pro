@@ -1,32 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from typing import List
 from datetime import date
 from decimal import Decimal
-from app.db.database import get_db
-from app.db.models import Portfolio
-from app.risk_engine.position_risk import calculate_position_risk
-from app.risk_engine.types import BondRiskInput
-from app.risk_engine.historical import FactorAlignmentService
-from app.risk_engine.market_risk import (
-    check_model_availability,
-    ModelStatus,
-    ScenarioPnlMatrix,
-    calculate_historical_var,
-    calculate_expected_shortfall,
-    calculate_parametric_var,
-    calculate_covariance_matrix,
-    calculate_correlation_matrix,
-    calculate_component_var,
-    calculate_marginal_var,
-    calculate_rolling_volatility,
-    calculate_backtest
-)
-import pandas as pd
-import numpy as np
 
+import numpy as np
+import pandas as pd
 from app.auth.dependencies import PermissionChecker
 from app.auth.permissions import RISK_READ
+from app.db.database import get_db
+from app.db.models import Portfolio
+from app.risk_engine.historical import FactorAlignmentService
+from app.risk_engine.market_risk import (
+    ModelStatus,
+    ScenarioPnlMatrix,
+    calculate_backtest,
+    calculate_component_var,
+    calculate_correlation_matrix,
+    calculate_covariance_matrix,
+    calculate_expected_shortfall,
+    calculate_historical_var,
+    calculate_marginal_var,
+    calculate_parametric_var,
+    calculate_rolling_volatility,
+    check_model_availability,
+)
+from app.risk_engine.position_risk import calculate_position_risk
+from app.risk_engine.types import BondRiskInput
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(PermissionChecker(RISK_READ))])
 
@@ -58,7 +57,7 @@ def _get_portfolio_and_shocks(portfolio_id: int, db: Session, required_obs: int 
         
     return portfolio, shocks, availability
 
-def _get_portfolio_positions_risk(portfolio, valuation_date: date) -> List:
+def _get_portfolio_positions_risk(portfolio, valuation_date: date) -> list:
     # Need to calculate position risk for each position
     position_risks = []
     for pos in portfolio.positions:
@@ -157,9 +156,9 @@ def get_factor_correlation(matrix_type: str = Query("production_factors", descri
         
         # If production factors, we must drop ETFs
         if matrix_type == "production_factors":
-            shocks = shocks[[c for c in shocks.columns if c.startswith("RATE_") or c.startswith("SPREAD_")]]
+            shocks = shocks[[c for c in shocks.columns if c.startswith(("RATE_", "SPREAD_"))]]
         else:
-            shocks = shocks[[c for c in shocks.columns if not (c.startswith("RATE_") or c.startswith("SPREAD_"))]]
+            shocks = shocks[[c for c in shocks.columns if not (c.startswith(("RATE_", "SPREAD_")))]]
             
         return calculate_correlation_matrix(shocks)
     except Exception as e:
@@ -173,9 +172,9 @@ def get_factor_covariance(matrix_type: str = Query("production_factors", descrip
         shocks = service.get_aligned_factor_returns(required_obs=100, model_status="FULL_FACTOR_MODEL" if matrix_type == "production_factors" else "UNAVAILABLE", include_etfs=include_etfs)
         
         if matrix_type == "production_factors":
-            shocks = shocks[[c for c in shocks.columns if c.startswith("RATE_") or c.startswith("SPREAD_")]]
+            shocks = shocks[[c for c in shocks.columns if c.startswith(("RATE_", "SPREAD_"))]]
         else:
-            shocks = shocks[[c for c in shocks.columns if not (c.startswith("RATE_") or c.startswith("SPREAD_"))]]
+            shocks = shocks[[c for c in shocks.columns if not (c.startswith(("RATE_", "SPREAD_")))]]
             
         return calculate_covariance_matrix(shocks)
     except Exception as e:
@@ -256,7 +255,7 @@ def get_factor_volatility(
     if include_etfs:
         try:
             shocks = service.get_aligned_factor_returns(required_obs=window, model_status="UNAVAILABLE", include_etfs=True)
-            etf_shocks = shocks[[c for c in shocks.columns if not (c.startswith("RATE_") or c.startswith("SPREAD_"))]]
+            etf_shocks = shocks[[c for c in shocks.columns if not (c.startswith(("RATE_", "SPREAD_")))]]
             return calculate_rolling_volatility(etf_shocks, window=window)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
@@ -309,7 +308,7 @@ def get_backtest(
     confidence_level: float = Query(0.95), 
     db: Session = Depends(get_db)
 ):
-    portfolio, shocks, availability = _get_portfolio_and_shocks(portfolio_id, db, required_obs=252, include_etfs=False)
+    portfolio, shocks, _availability = _get_portfolio_and_shocks(portfolio_id, db, required_obs=252, include_etfs=False)
     
     position_risks = _get_portfolio_positions_risk(portfolio, date.today())
     bonds_map = {p.bond_id: p.bond for p in portfolio.positions}

@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List
-from app.db.database import get_db
-from app.schemas.portfolio import PortfolioCreate, PortfolioUpdate, PortfolioResponse
-from app.schemas.position import PositionResponse
-from app.services.portfolio import PortfolioService
-from app.db.models import Position, User
+
 from app.auth.dependencies import PermissionChecker, get_current_user
 from app.auth.permissions import PORTFOLIO_READ, PORTFOLIO_WRITE
+from app.db.database import get_db
+from app.db.models import Position, User
+from app.schemas.portfolio import PortfolioCreate, PortfolioResponse, PortfolioUpdate
+from app.schemas.position import PositionResponse
+from app.services.portfolio import PortfolioService
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -16,7 +16,7 @@ def create_portfolio(schema: PortfolioCreate, db: Session = Depends(get_db)):
     svc = PortfolioService(db)
     return svc.create_portfolio(schema)
 
-@router.get("", response_model=List[PortfolioResponse])
+@router.get("", response_model=list[PortfolioResponse])
 def list_portfolios(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -50,7 +50,7 @@ def delete_portfolio(portfolio_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Portfolio not found")
     return {"status": "deleted"}
 
-@router.get("/{portfolio_id}/positions", response_model=List[PositionResponse], dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
+@router.get("/{portfolio_id}/positions", response_model=list[PositionResponse], dependencies=[Depends(PermissionChecker(PORTFOLIO_READ))])
 def get_portfolio_positions(portfolio_id: int, db: Session = Depends(get_db)):
     return db.query(Position).filter(Position.portfolio_id == portfolio_id).all()
 

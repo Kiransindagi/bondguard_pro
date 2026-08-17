@@ -1,11 +1,13 @@
 from decimal import Decimal
-from .types import BondRiskInput, BondRiskResult
-from .cashflows import generate_remaining_cashflows, calculate_accrued_interest
-from .yield_solver import calculate_ytm
-from .valuation import dirty_price_from_ytm
-from .duration import calculate_macaulay_duration, calculate_modified_duration
+
+from .cashflows import calculate_accrued_interest, generate_remaining_cashflows
 from .convexity import calculate_convexity
+from .duration import calculate_macaulay_duration, calculate_modified_duration
 from .dv01 import calculate_dv01
+from .types import BondRiskInput, BondRiskResult
+from .valuation import dirty_price_from_ytm
+from .yield_solver import calculate_ytm
+
 
 def calculate_position_risk(input_data: BondRiskInput) -> BondRiskResult:
     """
@@ -25,9 +27,9 @@ def calculate_position_risk(input_data: BondRiskInput) -> BondRiskResult:
 
     # Determine dirty price and YTM based on input
     if input_data.valuation_date >= input_data.maturity_date:
-        clean_price = Decimal('0')
-        dirty_price = Decimal('0')
-        ytm = Decimal('0')
+        clean_price = Decimal(0)
+        dirty_price = Decimal(0)
+        ytm = Decimal(0)
     else:
         if input_data.clean_price is not None and input_data.ytm is not None:
             # If both are provided, we should probably prefer price or yield, but we'll use price for solving yield to be safe

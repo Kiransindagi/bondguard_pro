@@ -1,13 +1,12 @@
+
+from app.auth.dependencies import get_current_user
+from app.auth.service import AuthService
+from app.db.database import get_db
+from app.db.models import User
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import List
-
-from app.db.database import get_db
-from app.auth.service import AuthService
-from app.auth.dependencies import get_current_user
-from app.db.models import User
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -30,8 +29,8 @@ class UserMeResponse(BaseModel):
     username: str
     email: str
     is_active: bool
-    roles: List[str]
-    permissions: List[str]
+    roles: list[str]
+    permissions: list[str]
 
 @router.post("/login", response_model=TokenResponse)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):

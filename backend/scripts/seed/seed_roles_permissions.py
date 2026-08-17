@@ -1,16 +1,30 @@
-import os
 import logging
-from app.db.database import SessionLocal
-from app.db.models import User, Role, Permission
+import os
+
 from app.auth.password import get_password_hash
 from app.auth.permissions import (
-    PORTFOLIO_READ, PORTFOLIO_WRITE, RISK_READ, RISK_EXECUTE,
-    STRESS_EXECUTE, LIQUIDITY_EXECUTE, BREACH_ACKNOWLEDGE,
-    LIMIT_MANAGE, PIPELINE_RUN, QUALITY_RUN, ANALYTICS_RUN,
-    REPORT_GENERATE, AUDIT_READ, USER_MANAGE,
-    BREACH_READ, BREACH_ASSIGN, BREACH_REVIEW, BREACH_RESOLVE,
-    NOTIFICATION_READ, NOTIFICATION_MANAGE
+    ANALYTICS_RUN,
+    AUDIT_READ,
+    BREACH_ACKNOWLEDGE,
+    BREACH_ASSIGN,
+    BREACH_READ,
+    BREACH_RESOLVE,
+    LIMIT_MANAGE,
+    LIQUIDITY_EXECUTE,
+    NOTIFICATION_MANAGE,
+    NOTIFICATION_READ,
+    PIPELINE_RUN,
+    PORTFOLIO_READ,
+    PORTFOLIO_WRITE,
+    QUALITY_RUN,
+    REPORT_GENERATE,
+    RISK_EXECUTE,
+    RISK_READ,
+    STRESS_EXECUTE,
+    USER_MANAGE,
 )
+from app.db.database import SessionLocal
+from app.db.models import Permission, Role, User
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,7 +42,7 @@ def seed_data(db=None):
             STRESS_EXECUTE, LIQUIDITY_EXECUTE, BREACH_ACKNOWLEDGE,
             LIMIT_MANAGE, PIPELINE_RUN, QUALITY_RUN, ANALYTICS_RUN,
             REPORT_GENERATE, AUDIT_READ, USER_MANAGE,
-            BREACH_READ, BREACH_ASSIGN, BREACH_REVIEW, BREACH_RESOLVE,
+            BREACH_READ, BREACH_ASSIGN, BREACH_RESOLVE,
             NOTIFICATION_READ, NOTIFICATION_MANAGE
         ]
         
@@ -55,7 +69,7 @@ def seed_data(db=None):
             },
             "RISK_MANAGER": {
                 "desc": "Risk limits and breaches evaluation, limit modification, breach acknowledgement, and analytics run execution",
-                "perms": [PORTFOLIO_READ, RISK_READ, REPORT_GENERATE, RISK_EXECUTE, LIMIT_MANAGE, BREACH_ACKNOWLEDGE, ANALYTICS_RUN, BREACH_READ, BREACH_ASSIGN, BREACH_REVIEW, BREACH_RESOLVE, NOTIFICATION_READ, NOTIFICATION_MANAGE]
+                "perms": [PORTFOLIO_READ, RISK_READ, REPORT_GENERATE, RISK_EXECUTE, LIMIT_MANAGE, BREACH_ACKNOWLEDGE, ANALYTICS_RUN, BREACH_READ, BREACH_ASSIGN, BREACH_RESOLVE, NOTIFICATION_READ, NOTIFICATION_MANAGE]
             },
             "ADMIN": {
                 "desc": "Identity administration, role controls, full pipeline run controls, and full system configuration access",

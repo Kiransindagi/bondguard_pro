@@ -1,12 +1,17 @@
-from sqlalchemy.orm import Session
-from datetime import date
 import logging
+from datetime import date
+
+from app.data.constants import ETF_SYMBOLS, TREASURY_SERIES
 from app.data.fred_client import FredAPIClient
 from app.data.market_client import YFinanceProvider
 from app.data.repository import DataRepository
-from app.data.constants import TREASURY_SERIES, ETF_SYMBOLS
-from app.data.transformations import transform_fred_to_yield_curve, transform_fred_to_credit_spread, transform_fred_to_macro
+from app.data.transformations import (
+    transform_fred_to_credit_spread,
+    transform_fred_to_macro,
+    transform_fred_to_yield_curve,
+)
 from app.data.validators import validate_market_price, validate_yield_curve_point
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +22,7 @@ class DataIngestor:
         self.fred_client = FredAPIClient()
         self.market_provider = YFinanceProvider()
 
-    def ingest_fred_yield_curve(self, start_date: date = None, end_date: date = None):
+    def ingest_fred_yield_curve(self, start_date: date | None = None, end_date: date | None = None):
         run = self.repo.start_ingestion_run("FRED", "Yield_Curve")
         try:
             total_fetched = 0
@@ -37,7 +42,7 @@ class DataIngestor:
             logger.error(f"Failed to ingest FRED Yield Curve: {e}")
             self.repo.finish_ingestion_run(run, "FAILED", error_message=str(e))
 
-    def ingest_fred_credit_spreads(self, start_date: date = None, end_date: date = None):
+    def ingest_fred_credit_spreads(self, start_date: date | None = None, end_date: date | None = None):
         run = self.repo.start_ingestion_run("FRED", "Credit_Spreads")
         try:
             total_fetched = 0
@@ -57,7 +62,7 @@ class DataIngestor:
             logger.error(f"Failed to ingest FRED Credit Spreads: {e}")
             self.repo.finish_ingestion_run(run, "FAILED", error_message=str(e))
 
-    def ingest_fred_macro(self, start_date: date = None, end_date: date = None):
+    def ingest_fred_macro(self, start_date: date | None = None, end_date: date | None = None):
         run = self.repo.start_ingestion_run("FRED", "Macro")
         try:
             total_fetched = 0
@@ -77,7 +82,7 @@ class DataIngestor:
             logger.error(f"Failed to ingest FRED Macro: {e}")
             self.repo.finish_ingestion_run(run, "FAILED", error_message=str(e))
 
-    def ingest_etf_market_data(self, start_date: date = None, end_date: date = None):
+    def ingest_etf_market_data(self, start_date: date | None = None, end_date: date | None = None):
         run = self.repo.start_ingestion_run("yfinance", "ETF_Market_Data")
         try:
             total_fetched = 0
@@ -98,7 +103,7 @@ class DataIngestor:
             logger.error(f"Failed to ingest ETF Market Data: {e}")
             self.repo.finish_ingestion_run(run, "FAILED", error_message=str(e))
 
-    def ingest_all(self, start_date: date = None, end_date: date = None):
+    def ingest_all(self, start_date: date | None = None, end_date: date | None = None):
         self.ingest_fred_yield_curve(start_date, end_date)
         self.ingest_fred_credit_spreads(start_date, end_date)
         self.ingest_fred_macro(start_date, end_date)

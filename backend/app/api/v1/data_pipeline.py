@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, joinedload
-from typing import List
-from app.db.database import get_db
-from app.db.models import PipelineRun
-from app.schemas.data_pipeline import PipelineRunRequest, PipelineRunResponse
-from app.data_pipeline.orchestrator import PipelineOrchestrator
 
 from app.auth.dependencies import PermissionChecker
 from app.auth.permissions import AUDIT_READ, PIPELINE_RUN
+from app.data_pipeline.orchestrator import PipelineOrchestrator
+from app.db.database import get_db
+from app.db.models import PipelineRun
+from app.schemas.data_pipeline import PipelineRunRequest, PipelineRunResponse
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session, joinedload
 
 router = APIRouter()
 
@@ -25,11 +24,11 @@ def trigger_pipeline_run(req: PipelineRunRequest, db: Session = Depends(get_db))
         )
         return run
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Pipeline execution failed: {e!s}")
 
 
 
-@router.get("/runs", response_model=List[PipelineRunResponse], dependencies=[Depends(PermissionChecker(AUDIT_READ))])
+@router.get("/runs", response_model=list[PipelineRunResponse], dependencies=[Depends(PermissionChecker(AUDIT_READ))])
 def list_pipeline_runs(limit: int = 50, db: Session = Depends(get_db)):
     runs = db.query(PipelineRun).options(joinedload(PipelineRun.job_runs)).order_by(PipelineRun.started_at.desc()).limit(limit).all()
     return runs

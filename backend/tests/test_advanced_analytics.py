@@ -1,16 +1,16 @@
-import pytest
 from datetime import date
 from decimal import Decimal
-from sqlalchemy.orm import Session
 
+import pytest
 from app.db.models import Bond
 from app.risk_engine.advanced_analytics import (
-    calculate_tenor_weights,
     AdvancedAnalyticsCalculator,
     PnLExplainCalculator,
+    calculate_tenor_weights,
 )
 from app.risk_engine.position_risk import calculate_position_risk
 from app.risk_engine.types import BondRiskInput
+from sqlalchemy.orm import Session
 
 
 def test_calculate_tenor_weights():
@@ -43,7 +43,7 @@ def test_bucketed_dv01_reconciliation(db_session: Session):
     """Sum of bucketed DV01s must reconcile to the base position DV01."""
     treasury = Bond(
         isin="US1234ADV", bond_name="T-Bond DV01", issuer_name="US Govt",
-        face_value=Decimal(100), coupon_rate=Decimal(0.04),
+        face_value=Decimal(100), coupon_rate=Decimal("0.04"),
         coupon_frequency="semiannual", issue_date=date(2020, 1, 1),
         maturity_date=date(2027, 1, 1), day_count_convention="ACT/ACT",
         bond_type="Treasury"
@@ -73,7 +73,7 @@ def test_pnl_explain_residual(db_session: Session):
     """PnL explain residual must equal actual_pnl minus explained_pnl."""
     corp = Bond(
         isin="US4567ADV", bond_name="Corp-Bond PnL", issuer_name="Corp Inc",
-        face_value=Decimal(100), coupon_rate=Decimal(0.05),
+        face_value=Decimal(100), coupon_rate=Decimal("0.05"),
         coupon_frequency="semiannual", issue_date=date(2020, 1, 1),
         maturity_date=date(2030, 1, 1), day_count_convention="30/360",
         bond_type="Corporate"

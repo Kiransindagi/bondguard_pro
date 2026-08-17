@@ -1,13 +1,14 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator, field_validator
-from typing import Optional
+import re
 from datetime import date, datetime
 from decimal import Decimal
-import re
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
 
 class BondBase(BaseModel):
     isin: str = Field(..., description="ISIN")
-    cusip: Optional[str] = None
-    ticker: Optional[str] = None
+    cusip: str | None = None
+    ticker: str | None = None
     issuer_name: str
     bond_name: str
     currency: str = "USD"
@@ -18,9 +19,9 @@ class BondBase(BaseModel):
     maturity_date: date
     day_count_convention: str = Field(..., pattern="^(ACT/ACT|ACT/360|30/360)$")
     bond_type: str
-    credit_rating: Optional[str] = None
-    sector: Optional[str] = None
-    country: Optional[str] = None
+    credit_rating: str | None = None
+    sector: str | None = None
+    country: str | None = None
 
     @field_validator('isin')
     @classmethod
@@ -31,7 +32,7 @@ class BondBase(BaseModel):
 
     @field_validator('cusip')
     @classmethod
-    def validate_cusip(cls, v: Optional[str]) -> Optional[str]:
+    def validate_cusip(cls, v: str | None) -> str | None:
         if v is not None and not re.match(r"^[A-Z0-9]{9}$", v):
             raise ValueError("Invalid CUSIP format: must be 9 alphanumeric characters")
         return v
@@ -53,15 +54,15 @@ class BondCreate(BondBase):
     pass
 
 class BondUpdate(BaseModel):
-    issuer_name: Optional[str] = None
-    bond_name: Optional[str] = None
-    credit_rating: Optional[str] = None
-    sector: Optional[str] = None
-    country: Optional[str] = None
+    issuer_name: str | None = None
+    bond_name: str | None = None
+    credit_rating: str | None = None
+    sector: str | None = None
+    country: str | None = None
 
     @field_validator('issuer_name', 'bond_name', 'credit_rating', 'sector', 'country')
     @classmethod
-    def validate_non_empty_optional(cls, v: Optional[str], info) -> Optional[str]:
+    def validate_non_empty_optional(cls, v: str | None, info) -> str | None:
         if v is not None and (not v or not v.strip()):
             raise ValueError(f"{info.field_name} cannot be empty if provided")
         return v.strip() if v is not None else None

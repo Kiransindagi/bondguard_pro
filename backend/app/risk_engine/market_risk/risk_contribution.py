@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def calculate_component_var(exposures: np.ndarray, covariance_matrix: np.ndarray, total_var: float) -> np.ndarray:
     """
     Component VaR for Parametric VaR.
