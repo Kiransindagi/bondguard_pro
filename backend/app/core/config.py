@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "BondGuard Pro"
     API_V1_STR: str = "/api/v1"
     DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/bondguard"
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]
     ENVIRONMENT: str = "development"
     FRED_API_KEY: str = ""
     
